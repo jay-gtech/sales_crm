@@ -1,0 +1,26 @@
+# ── Web Framework ─────────────────────────────────────────────────────────
+fastapi==0.109.2
+uvicorn==0.27.0.post1
+starlette==0.36.3
+python-multipart==0.0.9
+
+# ── Database ──────────────────────────────────────────────────────────────
+SQLAlchemy==2.0.25
+alembic==1.13.1
+
+# ── Templating ────────────────────────────────────────────────────────────
+Jinja2==3.1.3
+
+# ── Auth & Security ───────────────────────────────────────────────────────
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+cryptography==46.0.5
+
+# ── Config & Validation ───────────────────────────────────────────────────
+pydantic==2.7.1
+pydantic-settings==2.1.0
+
+# ── HTTP Client (AI integrations) ─────────────────────────────────────────
+httpx==0.27.0
+anyio==4.12.1

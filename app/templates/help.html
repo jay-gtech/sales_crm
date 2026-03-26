@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-8 bg-slate-50 min-h-screen max-w-4xl">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-slate-800">Help & Onboarding Guide</h1>
+        <p class="text-sm text-slate-500 mt-1">Everything you need to get started with the CRM platform</p>
+    </div>
+
+    <!-- Quick Nav -->
+    <div class="flex flex-wrap gap-3 mb-8">
+        <a href="#create-lead" class="text-xs font-bold px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all">Create a Lead</a>
+        <a href="#update-status" class="text-xs font-bold px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:border-blue-400 hover:text-blue-600 transition-all">Update Status</a>
+        <a href="#convert-deal" class="text-xs font-bold px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:border-blue-400 hover:text-blue-600 transition-all">Convert to Deal</a>
+        <a href="#use-dashboard" class="text-xs font-bold px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:border-blue-400 hover:text-blue-600 transition-all">Use Dashboard</a>
+        <a href="#activities" class="text-xs font-bold px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:border-blue-400 hover:text-blue-600 transition-all">Log Activities</a>
+    </div>
+
+    <div class="space-y-8">
+
+        <!-- 1. Create a Lead -->
+        <div id="create-lead" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-bold text-lg mr-4">1</div>
+                <div>
+                    <h2 class="text-base font-bold text-slate-800">How to Create a Lead</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Add new potential customers to the pipeline</p>
+                </div>
+            </div>
+            <ol class="space-y-4">
+                <li class="flex items-start space-x-3">
+                    <span class="w-6 h-6 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Navigate to the Leads page</p>
+                        <p class="text-xs text-slate-400 mt-1">Click <strong>Leads</strong> in the left sidebar or go to <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">/leads</code>.</p>
+                    </div>
+                </li>
+                <li class="flex items-start space-x-3">
+                    <span class="w-6 h-6 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Click "Add Lead"</p>
+                        <p class="text-xs text-slate-400 mt-1">The blue <strong>Add Lead</strong> button is in the top-right of the toolbar. A modal dialog will appear.</p>
+                    </div>
+                </li>
+                <li class="flex items-start space-x-3">
+                    <span class="w-6 h-6 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Fill in the lead details</p>
+                        <p class="text-xs text-slate-400 mt-1">Required: <strong>First Name</strong>, <strong>Last Name</strong>, <strong>Email</strong>. Optional: Phone, Company, Status.</p>
+                    </div>
+                </li>
+                <li class="flex items-start space-x-3">
+                    <span class="w-6 h-6 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">4</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Click "Create Lead"</p>
+                        <p class="text-xs text-slate-400 mt-1">The lead is saved and an activity is automatically logged. It will appear at the top of the table.</p>
+                    </div>
+                </li>
+            </ol>
+            <div class="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <p class="text-xs font-bold text-blue-700"><i class="fas fa-lightbulb mr-2"></i>Tip: You can also import leads in bulk using a CSV file via the API endpoint <code>/api/public/lead</code>.</p>
+            </div>
+        </div>
+
+        <!-- 2. Update Lead Status -->
+        <div id="update-status" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center font-bold text-lg mr-4">2</div>
+                <div>
+                    <h2 class="text-base font-bold text-slate-800">How to Update Lead Status</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Move leads through your sales funnel</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">From the Leads Table</h3>
+                    <ol class="space-y-3">
+                        <li class="flex items-start space-x-3">
+                            <span class="w-5 h-5 bg-emerald-50 text-emerald-600 text-[9px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
+                            <p class="text-xs text-slate-600">Find the lead in the table view</p>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <span class="w-5 h-5 bg-emerald-50 text-emerald-600 text-[9px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
+                            <p class="text-xs text-slate-600">Click the <strong>Status dropdown</strong> in the Status column</p>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <span class="w-5 h-5 bg-emerald-50 text-emerald-600 text-[9px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
+                            <p class="text-xs text-slate-600">Select the new stage — it saves automatically and logs a history entry</p>
+                        </li>
+                    </ol>
+                </div>
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Lead Stage Progression</h3>
+                    <div class="space-y-2">
+                        {% for stage, color in [('New Lead', 'bg-slate-200 text-slate-600'), ('Contacted', 'bg-blue-100 text-blue-700'), ('Qualified', 'bg-indigo-100 text-indigo-700'), ('Proposal Sent', 'bg-purple-100 text-purple-700'), ('Negotiation', 'bg-amber-100 text-amber-700'), ('Won/Lost', 'bg-emerald-100 text-emerald-700')] %}
+                        <div class="flex items-center space-x-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                            <span class="text-xs px-2 py-0.5 {{ color }} rounded-full font-semibold">{{ stage }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Convert Lead to Deal -->
+        <div id="convert-deal" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center font-bold text-lg mr-4">3</div>
+                <div>
+                    <h2 class="text-base font-bold text-slate-800">How to Convert a Lead to a Deal</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Turn a qualified lead into an active deal opportunity</p>
+                </div>
+            </div>
+            <ol class="space-y-4">
+                <li class="flex items-start space-x-3">
+                    <span class="w-6 h-6 bg-purple-50 text-purple-600 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Open the Lead Detail page</p>
+                        <p class="text-xs text-slate-400 mt-1">Click the eye icon <i class="fas fa-eye text-slate-400"></i> on any lead row, or click the lead's name to open their detail view.</p>
+                    </div>
+                </li>
+                <li class="flex items-start space-x-3">
+                    <span class="w-6 h-6 bg-purple-50 text-purple-600 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Click "Convert to Deal"</p>
+                        <p class="text-xs text-slate-400 mt-1">The green button in the top-right opens the conversion modal. Only visible if the lead is not already converted.</p>
+                    </div>
+                </li>
+                <li class="flex items-start space-x-3">
+                    <span class="w-6 h-6 bg-purple-50 text-purple-600 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Enter the Opportunity Name and Expected Revenue</p>
+                        <p class="text-xs text-slate-400 mt-1">The deal name defaults to the lead's name. Set the expected deal value in dollars.</p>
+                    </div>
+                </li>
+                <li class="flex items-start space-x-3">
+                    <span class="w-6 h-6 bg-purple-50 text-purple-600 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">4</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Click "Create Deal"</p>
+                        <p class="text-xs text-slate-400 mt-1">The lead is marked as <strong>Converted</strong>, a contact is automatically created, and the deal enters the <strong>New</strong> stage in the pipeline.</p>
+                    </div>
+                </li>
+            </ol>
+        </div>
+
+        <!-- 4. Use Dashboard -->
+        <div id="use-dashboard" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center font-bold text-lg mr-4">4</div>
+                <div>
+                    <h2 class="text-base font-bold text-slate-800">How to Use the Dashboard</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Monitor your pipeline health and team performance</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Main Dashboard <code class="font-normal text-slate-400">/</code></h3>
+                    <ul class="space-y-2 text-xs text-slate-600">
+                        <li class="flex items-start space-x-2"><i class="fas fa-check text-green-500 mt-0.5 shrink-0"></i><span>KPI cards: Total Leads, Active Deals, Won Deals, Tasks, Meetings</span></li>
+                        <li class="flex items-start space-x-2"><i class="fas fa-check text-green-500 mt-0.5 shrink-0"></i><span>Recent activities and meetings at a glance</span></li>
+                        <li class="flex items-start space-x-2"><i class="fas fa-check text-green-500 mt-0.5 shrink-0"></i><span>System Status: confirms all modules are live</span></li>
+                        <li class="flex items-start space-x-2"><i class="fas fa-check text-green-500 mt-0.5 shrink-0"></i><span>AI Meeting Intelligence: paste transcripts to auto-extract tasks</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Reports <code class="font-normal text-slate-400">/dashboard</code></h3>
+                    <ul class="space-y-2 text-xs text-slate-600">
+                        <li class="flex items-start space-x-2"><i class="fas fa-check text-green-500 mt-0.5 shrink-0"></i><span>Conversion Rate: leads to deals won</span></li>
+                        <li class="flex items-start space-x-2"><i class="fas fa-check text-green-500 mt-0.5 shrink-0"></i><span>Leads by Status: funnel drop-off analysis</span></li>
+                        <li class="flex items-start space-x-2"><i class="fas fa-check text-green-500 mt-0.5 shrink-0"></i><span>Leads by Source: which channels drive the most leads</span></li>
+                        <li class="flex items-start space-x-2"><i class="fas fa-check text-green-500 mt-0.5 shrink-0"></i><span>Pipeline by Stage: deal values per stage</span></li>
+                        <li class="flex items-start space-x-2"><i class="fas fa-check text-green-500 mt-0.5 shrink-0"></i><span>AI Insights: auto-generated observations from your data</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Log Activities -->
+        <div id="activities" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center font-bold text-lg mr-4">5</div>
+                <div>
+                    <h2 class="text-base font-bold text-slate-800">How to Log Activities</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Track every call, email, meeting, and task</p>
+                </div>
+            </div>
+            <ol class="space-y-4">
+                <li class="flex items-start space-x-3">
+                    <span class="w-6 h-6 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Go to Activities <code class="text-xs font-normal bg-slate-100 px-1.5 py-0.5 rounded">/activities</code></p>
+                        <p class="text-xs text-slate-400 mt-1">Click <strong>Activities</strong> in the sidebar.</p>
+                    </div>
+                </li>
+                <li class="flex items-start space-x-3">
+                    <span class="w-6 h-6 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Click "Log Activity"</p>
+                        <p class="text-xs text-slate-400 mt-1">A modal appears. Fill in the Title (required), Type (Call/Email/Meeting/Task), and Status.</p>
+                    </div>
+                </li>
+                <li class="flex items-start space-x-3">
+                    <span class="w-6 h-6 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Link to a Lead or Deal (optional)</p>
+                        <p class="text-xs text-slate-400 mt-1">Use the dropdowns to associate the activity with an existing lead or deal for full history tracking.</p>
+                    </div>
+                </li>
+                <li class="flex items-start space-x-3">
+                    <span class="w-6 h-6 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">4</span>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Mark activities complete</p>
+                        <p class="text-xs text-slate-400 mt-1">Pending activities show a <strong>Mark done</strong> link. Click it to move the activity to completed status.</p>
+                    </div>
+                </li>
+            </ol>
+            <div class="mt-6 grid grid-cols-4 gap-3">
+                <div class="text-center p-3 bg-blue-50 rounded-xl border border-blue-100">
+                    <span class="text-2xl">📞</span>
+                    <p class="text-[10px] font-bold text-blue-600 mt-1">Call</p>
+                </div>
+                <div class="text-center p-3 bg-purple-50 rounded-xl border border-purple-100">
+                    <span class="text-2xl">📧</span>
+                    <p class="text-[10px] font-bold text-purple-600 mt-1">Email</p>
+                </div>
+                <div class="text-center p-3 bg-orange-50 rounded-xl border border-orange-100">
+                    <span class="text-2xl">📅</span>
+                    <p class="text-[10px] font-bold text-orange-600 mt-1">Meeting</p>
+                </div>
+                <div class="text-center p-3 bg-green-50 rounded-xl border border-green-100">
+                    <span class="text-2xl">✅</span>
+                    <p class="text-[10px] font-bold text-green-600 mt-1">Task</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Links -->
+        <div class="bg-slate-800 rounded-2xl p-6 text-white flex items-center justify-between">
+            <div>
+                <p class="text-sm font-bold">Need more detail?</p>
+                <p class="text-xs text-slate-400 mt-1">Read the full Standard Operating Procedures for this CRM.</p>
+            </div>
+            <a href="/sop" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all">
+                View SOP Docs <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

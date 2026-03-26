@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex h-full bg-slate-50/50">
+    <!-- Sidebar Filters -->
+    <div class="w-72 bg-white border-r border-slate-200 flex flex-col shadow-sm z-10">
+        <div class="p-6 border-b border-slate-100 bg-slate-50/30">
+            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest px-2">Lead Funnel Filters</h2>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6 space-y-8">
+            <!-- Search -->
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase px-1">Search Leads</label>
+                <div class="mt-2 relative">
+                    <input type="text" id="searchInput" placeholder="Name, email, company..." value="{{ filters.search or '' }}"
+                        class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none">
+                    <i class="fas fa-search absolute left-3 top-2.5 text-slate-300 text-[10px]"></i>
+                </div>
+            </div>
+
+            <!-- Pipeline Stages -->
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase px-1">Lead Stage</label>
+                <div class="mt-3 space-y-1">
+                    <label class="flex items-center group cursor-pointer p-2 rounded-lg hover:bg-slate-50 transition-colors">
+                        <input type="radio" name="status_filter" value="" id="status_all"
+                            {% if not filters.status %}checked{% endif %}
+                            class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500/20">
+                        <span class="ml-3 text-xs text-slate-600 group-hover:text-slate-900">All Stages</span>
+                    </label>
+                    {% for status_opt in ['New', 'New Lead', 'Contacted', 'Qualified', 'Proposal Sent', 'Negotiation', 'Won/Lost', 'Converted'] %}
+                    <label class="flex items-center group cursor-pointer p-2 rounded-lg hover:bg-slate-50 transition-colors">
+                        <input type="radio" name="status_filter" value="{{ status_opt }}"
+                            {% if filters.status == status_opt %}checked{% endif %}
+                            class="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500/20">
+                        <span class="ml-3 text-xs text-slate-600 group-hover:text-slate-900 transition-colors">{{ status_opt }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Lead Source -->
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase px-1">Lead Source</label>
+                <div class="mt-2">
+                    <select id="sourceFilter" class="w-full bg-slate-50 border border-slate-200 rounded-xl text-xs px-3 py-2 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none">
+                        <option value="">All Sources</option>
+                        {% for src in lead_sources %}
+                        <option value="{{ src }}" {% if filters.source == src %}selected{% endif %}>
+                            {{ src.replace('_', ' ').title() }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="applyFilters()" class="w-full py-2.5 text-[10px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all uppercase tracking-widest">
+                Apply Filters
+            </button>
+        </div>
+
+        <div class="p-6 border-t border-slate-100 bg-slate-50/30">
+            <button onclick="resetFilters()" class="w-full py-2.5 text-[10px] font-bold text-slate-500 uppercase hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">Reset All Filters</button>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col min-w-0">
+        <!-- Toolbar -->
+        <div class="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-white shadow-sm">
+            <h1 class="text-xl font-bold text-slate-800">Leads Tracking</h1>
+            <div class="flex items-center space-x-3">
+                <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <button onclick="changeView('table')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all {% if filters.view != 'kanban' and filters.view != 'analytics' %}bg-white text-blue-600 shadow-sm{% else %}text-slate-500 hover:text-slate-700{% endif %}">
+                        <i class="fas fa-list mr-2"></i>Table
+                    </button>
+                    <button onclick="changeView('kanban')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all {% if filters.view == 'kanban' %}bg-white text-blue-600 shadow-sm{% else %}text-slate-500 hover:text-slate-700{% endif %}">
+                        <i class="fas fa-columns mr-2"></i>Kanban
+                    </button>
+                </div>
+                <button onclick="document.getElementById('createLeadModal').classList.remove('hidden')"
+                    class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow transition-all">
+                    <i class="fas fa-plus mr-1"></i> Add Lead
+                </button>
+            </div>
+        </div>
+        
+        <div class="flex-1 overflow-hidden relative">
+            {% if filters.view == 'kanban' %}
+            <div class="absolute inset-0 overflow-x-auto overflow-y-hidden p-8">
+                <div class="flex space-x-6 h-full min-w-max pb-4">
+                    {% for status_name in ['New Lead', 'Contacted', 'Qualified', 'Proposal Sent', 'Negotiation', 'Won/Lost'] %}
+                    <div class="w-[320px] bg-slate-100/40 rounded-2xl flex flex-col h-full border border-slate-200/50">
+                        <div class="p-5 flex items-center justify-between">
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">{{ status_name }}</h3>
+                            <span class="px-2 py-0.5 bg-white text-slate-400 rounded-full text-[10px] font-bold border border-slate-200 shadow-sm">
+                                {% set count = namespace(all=0) %}
+                                {% for l in leads %}{% if l.status == status_name %}{% set count.all = count.all + 1 %}{% endif %}{% endfor %}
+                                {{ count.all }}
+                            </span>
+                        </div>
+                        <div class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                            {% for lead in leads %}
+                            {% if lead.status == status_name or (status_name == 'New Lead' and lead.status == 'New') %}
+                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:shadow-xl hover:border-blue-200 transition-all group cursor-pointer relative" onclick="location.href='/leads/{{ lead.id }}'">
+                                <div class="flex justify-between items-start mb-3">
+                                    <h4 class="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{{ lead.first_name }} {{ lead.last_name }}</h4>
+                                    <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">{{ lead.lead_score or 0 }}</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 mb-4">{{ lead.company or 'No Company' }}</p>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <!-- Original Table -->
+            <div class="p-8">
+            <table class="w-full">
+                <thead>
+                    <tr class="text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                        <th class="px-4 py-3">Lead Name</th>
+                        <th class="px-4 py-3">Company</th>
+                        <th class="px-4 py-3">Status</th>
+                        <th class="px-4 py-3">Score</th>
+                        <th class="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lead in leads %}
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
+                        <td class="px-4 py-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold border border-blue-100">
+                                    {{ (lead.first_name or 'L')[0] }}
+                                </div>
+                                <div>
+                                    <a href="/leads/{{ lead.id }}" class="text-sm font-bold text-slate-800 hover:text-blue-600">{{ lead.first_name or '' }} {{ lead.last_name or '' }}</a>
+                                    <p class="text-[10px] text-slate-400">{{ lead.email or '' }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 text-xs text-slate-500">{{ lead.company or '—' }}</td>
+                        <td class="px-4 py-4">
+                            <div class="relative inline-block text-left">
+                                <select onchange="updateStatus({{ lead.id }}, this.value)"
+                                    class="text-[11px] font-bold px-3 py-1.5 rounded-lg border-none bg-slate-100 text-slate-600 cursor-pointer hover:bg-slate-200 transition-all outline-none appearance-none pr-8">
+                                    {% for s in ['New', 'New Lead', 'Contacted', 'Qualified', 'Proposal Sent', 'Negotiation', 'Won/Lost', 'Converted'] %}
+                                    <option value="{{ s }}" {% if lead.status == s %}selected{% endif %}>{{ s }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fas fa-chevron-down absolute right-3 top-2.5 text-[8px] text-slate-400 pointer-events-none"></i>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4">
+                            <div class="px-2 py-1 bg-blue-50 text-blue-600 rounded-md text-[10px] border border-blue-100 font-bold inline-block">
+                                {{ lead.lead_score or 0 }}
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                <a href="/leads/{{ lead.id }}" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="View">
+                                    <i class="fas fa-eye text-xs"></i>
+                                </a>
+                                <form action="/leads/{{ lead.id }}/delete" method="POST" onsubmit="return confirm('Delete this lead?')">
+                                    <button type="submit" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete">
+                                        <i class="fas fa-trash text-xs"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-16 text-center text-slate-400 text-sm">
+                            <i class="fas fa-users text-3xl mb-3 block text-slate-200"></i>
+                            No leads available. Click <strong>Add Lead</strong> to create your first one.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Create Lead Modal -->
+    <div id="createLeadModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="text-sm font-bold text-slate-800">Add New Lead</h3>
+                <button onclick="document.getElementById('createLeadModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 p-2">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form action="/leads" method="POST" class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">First Name *</label>
+                        <input type="text" name="first_name" required
+                            class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Last Name *</label>
+                        <input type="text" name="last_name" required
+                            class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Email *</label>
+                    <input type="email" name="email" required
+                        class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Phone</label>
+                        <input type="text" name="phone"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Company</label>
+                        <input type="text" name="company"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status</label>
+                    <select name="status" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                        {% for s in ['New', 'Contacted', 'Qualified', 'Proposal Sent', 'Negotiation', 'Won/Lost'] %}
+                        <option value="{{ s }}">{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="document.getElementById('createLeadModal').classList.add('hidden')"
+                        class="px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">Cancel</button>
+                    <button type="submit"
+                        class="px-5 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow">Create Lead</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800">Status History</h3>
+                    <p id="historyLeadName" class="text-[10px] text-slate-400 font-medium"></p>
+                </div>
+                <button onclick="document.getElementById('historyModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 p-2">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="historyList" class="p-6 max-h-[400px] overflow-y-auto space-y-6">
+                <!-- Data will be loaded via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function changeView(viewType) {
+        let url = new URL(window.location.href);
+        url.searchParams.set('view', viewType);
+        window.location.href = url.toString();
+    }
+
+    async function updateStatus(leadId, newStatus) {
+        const response = await fetch(`/leads/${leadId}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus, notes: "Updated via Funnel UI" })
+        });
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert("Failed to update status");
+        }
+    }
+
+    async function showHistory(leadId, name) {
+        document.getElementById('historyLeadName').textContent = name;
+        document.getElementById('historyModal').classList.remove('hidden');
+        const container = document.getElementById('historyList');
+        container.innerHTML = '<div class="flex items-center justify-center py-10"><i class="fas fa-spinner fa-spin text-slate-300 text-2xl"></i></div>';
+        
+        const res = await fetch(`/leads/${leadId}/history`);
+        if (res.ok) {
+            const data = await res.json();
+            container.innerHTML = data.map(item => `
+                <div class="flex items-start space-x-4 border-l-2 border-slate-100 pl-4 relative">
+                    <div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-50 border-2 border-white shadow-sm flex items-center justify-center">
+                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start">
+                            <p class="text-xs font-bold text-slate-800">${item.old_status || 'Created'} -> ${item.new_status}</p>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">${new Date(item.changed_at).toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    function applyFilters() {
+        const url = new URL(window.location.origin + '/leads');
+        const search = document.getElementById('searchInput').value.trim();
+        const statusEl = document.querySelector('input[name="status_filter"]:checked');
+        const source = document.getElementById('sourceFilter').value;
+        const view = new URLSearchParams(window.location.search).get('view') || 'table';
+        if (search) url.searchParams.set('search', search);
+        if (statusEl && statusEl.value) url.searchParams.set('status_filter', statusEl.value);
+        if (source) url.searchParams.set('source_filter', source);
+        url.searchParams.set('view', view);
+        window.location.href = url.toString();
+    }
+
+    // Apply filters on Enter key in search box
+    document.getElementById('searchInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') applyFilters();
+    });
+
+    function resetFilters() { location.href = '/leads'; }
+    </script>
+</div>
+{% endblock %}

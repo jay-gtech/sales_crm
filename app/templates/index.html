@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-8">
+    <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-800">Dashboard</h2>
+</div>
+
+<!-- Quick Actions Section -->
+<div class="mb-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+    <a href="/leads" class="flex items-center justify-center p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 font-semibold hover:bg-blue-100 transition">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        Add Lead
+    </a>
+    <a href="/activities" class="flex items-center justify-center p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 font-semibold hover:bg-green-100 transition">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+        Log Activity
+    </a>
+    <button onclick="document.body.scrollTop = document.getElementById('meeting-form').offsetTop; document.documentElement.scrollTop = document.getElementById('meeting-form').offsetTop;" class="flex items-center justify-center p-4 bg-purple-50 border border-purple-200 rounded-lg text-purple-700 font-semibold hover:bg-purple-100 transition">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+        AI meeting
+    </button>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+    <!-- Summary Cards -->
+    <div class="bg-white rounded-lg shadow-md p-6 border-b-4 border-blue-500">
+        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Total Leads</h3>
+        <p class="text-3xl font-bold text-gray-800 mt-2">{{ data.total_leads }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6 border-b-4 border-green-500">
+        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Active Deals</h3>
+        <p class="text-3xl font-bold text-gray-800 mt-2">{{ data.active_deals }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6 border-b-4 border-emerald-500">
+        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Won Deals</h3>
+        <p class="text-3xl font-bold text-gray-800 mt-2">{{ data.won_deals }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6 border-b-4 border-red-500">
+        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Tasks</h3>
+        <p class="text-3xl font-bold text-gray-800 mt-2">{{ data.tasks_count }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6 border-b-4 border-purple-500">
+        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Meetings</h3>
+        <p class="text-3xl font-bold text-gray-800 mt-2">{{ data.meetings_count }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Recent Activities -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b">Recent Activities</h3>
+        <div class="space-y-4">
+            {% for activity in data.recent_activities %}
+            <div class="flex items-start">
+                <div class="bg-gray-100 p-2 rounded mr-3">
+                    {% if activity.activity_type == 'Call' %}📞{% elif activity.activity_type == 'Email' %}📧{% else %}✅{% endif %}
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-900">{{ activity.description }}</p>
+                    <p class="text-xs text-gray-500">{{ activity.created_at.strftime('%m/%d %H:%M') if activity.created_at else '' }}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No recent activities.</p>
+            {% endfor %}
+        </div>
+        <a href="/activities" class="block text-center mt-6 text-sm text-blue-600 font-semibold hover:underline">View All Activities</a>
+    </div>
+
+    <!-- Recent Meetings -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b">Recent Meetings (AI-Processed)</h3>
+        <div class="space-y-4">
+            {% for meeting in data.recent_meetings %}
+            <div class="border-l-4 border-purple-200 pl-4 py-1">
+                <p class="text-sm font-bold text-gray-900">{{ meeting.title }}</p>
+                <p class="text-xs text-gray-600 truncate mb-1 italic">"{{ (meeting.transcript or '')[:100] }}..."</p>
+                <p class="text-xs text-gray-400">{{ meeting.created_at.strftime('%m/%d %H:%M') if meeting.created_at else '' }}</p>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No recent meetings.</p>
+            {% endfor %}
+        </div>
+        <a href="/activities" class="block text-center mt-6 text-sm text-purple-600 font-semibold hover:underline">Check Activity Feed</a>
+    </div>
+</div>
+
+<!-- Go-Live Readiness / System Status -->
+<div class="mb-8 bg-white rounded-lg shadow-md p-6 border border-gray-100">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-800 flex items-center">
+            <span class="w-2.5 h-2.5 bg-green-500 rounded-full mr-3 animate-pulse"></span>
+            System Status
+        </h3>
+        <span class="text-xs font-bold text-green-600 bg-green-50 border border-green-100 px-3 py-1 rounded-full uppercase tracking-widest">
+            Go-Live Ready
+        </span>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+            <span class="text-green-500 text-lg">✔</span>
+            <div>
+                <p class="text-xs font-bold text-slate-700">Leads Module</p>
+                <p class="text-[10px] text-slate-400">Active</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+            <span class="text-green-500 text-lg">✔</span>
+            <div>
+                <p class="text-xs font-bold text-slate-700">Deals Module</p>
+                <p class="text-[10px] text-slate-400">Active</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+            <span class="text-green-500 text-lg">✔</span>
+            <div>
+                <p class="text-xs font-bold text-slate-700">Activities</p>
+                <p class="text-[10px] text-slate-400">Active</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+            <span class="text-green-500 text-lg">✔</span>
+            <div>
+                <p class="text-xs font-bold text-slate-700">Reports</p>
+                <p class="text-[10px] text-slate-400">Active</p>
+            </div>
+        </div>
+    </div>
+    <div class="mt-4 flex items-center space-x-6 text-[10px] text-slate-400">
+        <span><i class="fas fa-database mr-1"></i> Database: Connected</span>
+        <span><i class="fas fa-lock mr-1"></i> Auth: Active</span>
+        <span><i class="fas fa-robot mr-1"></i> AI Assistant: Online</span>
+        <span><i class="fas fa-satellite-dish mr-1"></i> Lead Capture API: Online</span>
+    </div>
+</div>
+
+<!-- Meeting Intelligence System Form -->
+<div id="meeting-form" class="mt-8 bg-white rounded-lg shadow-md p-6">
+    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+        Meeting Intelligence System
+        <span class="ml-2 text-xs bg-indigo-100 text-indigo-800 py-1 px-2 rounded-full font-semibold uppercase tracking-wide">Beta</span>
+    </h3>
+    <form action="/meetings/process" method="POST">
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Meeting Title</label>
+            <input type="text" name="title" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight">
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Meeting Transcript</label>
+            <textarea name="transcript" required rows="5" placeholder="Paste meeting notes/transcript here... E.g., 'We will follow up by tomorrow. John should send the contract next week...'" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"></textarea>
+            <p class="text-xs text-gray-500 mt-1">AI will extract tasks, deadlines, and key points to automatically generate Activity Tasks.</p>
+        </div>
+        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded transition duration-200">
+            Generate Insights
+        </button>
+    </form>
+</div>
+
+<!-- Output Section -->
+{% if processed_meeting %}
+<div class="mt-8 bg-indigo-50 border-l-4 border-indigo-500 rounded p-6 shadow-md mb-8">
+    <h3 class="text-2xl font-bold text-indigo-900 mb-2">Insights Extracted: {{ processed_meeting.title }}</h3>
+    <p class="text-sm text-indigo-700 mb-6 font-medium bg-white inline-block px-3 py-1 rounded shadow-sm">Tasks have been automatically saved to the Activity Module.</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Action Items (Tasks) -->
+        <div>
+            <h4 class="font-bold text-gray-800 mb-3 flex items-center border-b pb-2">
+                <span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded-full mr-2 uppercase tracking-wide">Tasks</span>
+                Action Items
+            </h4>
+            <ul class="list-none space-y-3">
+                {% for insight in processed_meeting.insights %}
+                    {% if insight.type == "task" %}
+                    <li class="bg-white p-3 rounded shadow-sm border border-gray-100 flex flex-col">
+                        <span class="text-gray-800 font-medium">{{ insight.content }}</span>
+                        <div class="mt-2 flex items-center space-x-2">
+                            {% if insight.owner %}<span class="font-bold text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded">@{{ insight.owner }}</span>{% endif %}
+                            {% if insight.deadline %}<span class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100 flex items-center">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Due: {{ insight.deadline }}
+                            </span>{% endif %}
+                        </div>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <!-- Key Points -->
+        <div>
+            <h4 class="font-bold text-gray-800 mb-3 flex items-center border-b pb-2">
+                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-full mr-2 uppercase tracking-wide">Points</span>
+                Key Discussion
+            </h4>
+            <ul class="list-disc pl-5 space-y-2">
+                {% for insight in processed_meeting.insights %}
+                    {% if insight.type == "point" %}
+                    <li class="text-gray-700 leading-relaxed">{{ insight.content }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- CRM Assistant Chatbot Floating UI -->
+<div class="fixed bottom-6 right-6 z-50">
+    <!-- Chat Bubble -->
+    <button id="chat-toggle" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-4 shadow-lg transition duration-300 flex items-center justify-center">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+    </button>
+    
+    <!-- Chat Window -->
+    <div id="chat-window" class="hidden absolute bottom-20 right-0 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col overflow-hidden transition-all duration-300">
+        <div class="bg-indigo-600 p-4 text-white font-bold flex justify-between items-center">
+            <span>CRM Assistant</span>
+            <button id="chat-close" class="text-indigo-200 hover:text-white">&times;</button>
+        </div>
+        <div id="chat-history" class="h-64 p-4 overflow-y-auto bg-gray-50 text-sm space-y-3">
+            <div class="bg-indigo-100 text-indigo-900 p-2 rounded-lg rounded-tl-none self-start">
+                Hi! How can I help you today? Try asking about leads, deals, or meetings.
+            </div>
+        </div>
+        <div class="p-3 border-t bg-white">
+            <div class="flex space-x-2">
+                <input type="text" id="chat-input" placeholder="Type a message..." class="flex-1 border rounded-full px-3 py-1 text-sm focus:outline-none focus:border-indigo-500">
+                <button id="chat-send" class="bg-indigo-600 text-white rounded-full p-2 hover:bg-indigo-700">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatToggle = document.getElementById('chat-toggle');
+    const chatWindow = document.getElementById('chat-window');
+    const chatClose = document.getElementById('chat-close');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    const chatHistory = document.getElementById('chat-history');
+
+    chatToggle.onclick = () => chatWindow.classList.toggle('hidden');
+    chatClose.onclick = () => chatWindow.classList.add('hidden');
+
+    async function sendMessage() {
+        const query = chatInput.value.trim();
+        if (!query) return;
+
+        // User message
+        const userDiv = document.createElement('div');
+        userDiv.className = 'bg-white border text-gray-800 p-2 rounded-lg rounded-tr-none self-end text-right ml-8';
+        userDiv.textContent = query;
+        chatHistory.appendChild(userDiv);
+        chatInput.value = '';
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+
+        try {
+            const response = await fetch('/chatbot/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: query })
+            });
+            const data = await response.json();
+            
+            // Bot response
+            const botDiv = document.createElement('div');
+            botDiv.className = 'bg-indigo-100 text-indigo-900 p-2 rounded-lg rounded-tl-none self-start mr-8 whitespace-pre-wrap';
+            botDiv.textContent = data.response;
+            chatHistory.appendChild(botDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    chatSend.onclick = sendMessage;
+    chatInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+</script>
+</div>
+{% endblock %}

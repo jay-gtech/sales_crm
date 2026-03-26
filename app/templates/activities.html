@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block content %}
+
+{# ── icon/color helpers ───────────────────────────────────────────────── #}
+{% set type_icon = {
+    'Call':    '📞',
+    'Email':   '📧',
+    'Meeting': '📅',
+    'Task':    '✅'
+} %}
+{% set type_color = {
+    'Call':    'bg-blue-50 text-blue-700 border-blue-200',
+    'Email':   'bg-purple-50 text-purple-700 border-purple-200',
+    'Meeting': 'bg-orange-50 text-orange-700 border-orange-200',
+    'Task':    'bg-green-50 text-green-700 border-green-200'
+} %}
+
+<div class="p-8 bg-slate-50 min-h-screen">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Activity Tracker</h1>
+            <p class="text-sm text-slate-500 mt-1">All CRM interactions in one place</p>
+        </div>
+        <button onclick="document.getElementById('createModal').classList.remove('hidden')"
+            class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all">
+            <i class="fas fa-plus"></i> Log Activity
+        </button>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="flex items-center gap-3 mb-6 flex-wrap">
+        {% for t in ['', 'Call', 'Email', 'Meeting', 'Task'] %}
+        <a href="/activities?filter_type={{ t }}&filter_status={{ filter_status }}"
+            class="px-3 py-1.5 rounded-lg text-xs font-bold border transition-all
+                {% if filter_type == t %}bg-blue-600 text-white border-blue-600{% else %}bg-white text-slate-500 border-slate-200 hover:border-blue-400 hover:text-blue-600{% endif %}">
+            {% if t %}{{ type_icon.get(t, '') }} {{ t }}{% else %}All Types{% endif %}
+        </a>
+        {% endfor %}
+        <span class="mx-2 text-slate-300">|</span>
+        {% for s, label in [('', 'All'), ('pending', 'Pending'), ('completed', 'Completed')] %}
+        <a href="/activities?filter_type={{ filter_type }}&filter_status={{ s }}"
+            class="px-3 py-1.5 rounded-lg text-xs font-bold border transition-all
+                {% if filter_status == s %}bg-slate-700 text-white border-slate-700{% else %}bg-white text-slate-500 border-slate-200 hover:border-slate-400{% endif %}">
+            {{ label }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Timeline Feed -->
+    <div class="max-w-4xl">
+        {% if activities %}
+        <div class="relative border-l-2 border-slate-200 ml-4 space-y-0">
+            {% for activity in activities %}
+            <div class="relative ml-8 mb-6">
+                <!-- Timeline dot -->
+                <span class="absolute -left-[41px] top-3 w-4 h-4 rounded-full border-2 border-white shadow
+                    {% if activity.status == 'completed' %}bg-emerald-500{% else %}bg-amber-400{% endif %}">
+                </span>
+
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex items-start gap-3 flex-1 min-w-0">
+                            <!-- Type badge -->
+                            <span class="shrink-0 text-lg leading-none mt-0.5">
+                                {{ type_icon.get(activity.activity_type, '📋') }}
+                            </span>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-slate-800 truncate">
+                                    {{ activity.title or activity.activity_type }}
+                                </p>
+                                {% if activity.description %}
+                                <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">{{ activity.description }}</p>
+                                {% endif %}
+                                <!-- Related entity -->
+                                <div class="flex items-center gap-2 mt-2 flex-wrap">
+                                    {% if activity.lead %}
+                                    <a href="/leads/{{ activity.lead_id }}"
+                                        class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors">
+                                        <i class="fas fa-user text-[8px]"></i>
+                                        {{ activity.lead.first_name or '' }} {{ activity.lead.last_name or '' }}
+                                    </a>
+                                    {% endif %}
+                                    {% if activity.deal %}
+                                    <a href="/deals/{{ activity.deal_id }}"
+                                        class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+                                        <i class="fas fa-handshake text-[8px]"></i>
+                                        {{ activity.deal.name }}
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: status + date + action -->
+                        <div class="flex flex-col items-end gap-2 shrink-0">
+                            <span class="text-[10px] font-bold px-2.5 py-1 rounded-full border
+                                {% if activity.status == 'completed' %}bg-emerald-50 text-emerald-700 border-emerald-200
+                                {% else %}bg-amber-50 text-amber-700 border-amber-200{% endif %}">
+                                {% if activity.status == 'completed' %}✓ Done{% else %}⏳ Pending{% endif %}
+                            </span>
+                            <span class="text-[10px] text-slate-400">
+                                {{ activity.created_at.strftime('%d %b, %H:%M') if activity.created_at else '' }}
+                            </span>
+                            {% if activity.status == 'pending' %}
+                            <form action="/activities/{{ activity.id }}/complete" method="POST">
+                                <button type="submit"
+                                    class="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 hover:underline transition-colors">
+                                    Mark done
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <!-- Empty state -->
+        <div class="flex flex-col items-center justify-center py-24 text-center bg-white rounded-2xl border border-slate-200 shadow-sm max-w-4xl">
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-3xl mb-4">📋</div>
+            <p class="text-slate-600 font-semibold text-base">No activities yet</p>
+            <p class="text-slate-400 text-sm mt-1 mb-6">Start tracking calls, emails, and tasks</p>
+            <button onclick="document.getElementById('createModal').classList.remove('hidden')"
+                class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all">
+                + Log First Activity
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ── Create Activity Modal ──────────────────────────────────────────── -->
+<div id="createModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="text-sm font-bold text-slate-800">Log New Activity</h3>
+            <button onclick="document.getElementById('createModal').classList.add('hidden')"
+                class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form action="/activities" method="POST" class="p-6 space-y-4">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Title *</label>
+                <input type="text" name="title" required placeholder="e.g. Follow-up call with John"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Type</label>
+                    <select name="activity_type"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none">
+                        <option value="Call">📞 Call</option>
+                        <option value="Email">📧 Email</option>
+                        <option value="Meeting">📅 Meeting</option>
+                        <option value="Task" selected>✅ Task</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Status</label>
+                    <select name="status_val"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none">
+                        <option value="pending">⏳ Pending</option>
+                        <option value="completed">✓ Completed</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Related Lead</label>
+                <select name="lead_id"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none">
+                    <option value="">— None —</option>
+                    {% for lead in leads %}
+                    <option value="{{ lead.id }}">{{ lead.first_name or '' }} {{ lead.last_name or '' }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Related Deal</label>
+                <select name="deal_id"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none">
+                    <option value="">— None —</option>
+                    {% for deal in deals %}
+                    <option value="{{ deal.id }}">{{ deal.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Notes</label>
+                <textarea name="description" rows="3" placeholder="Optional notes..."
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none transition-all"></textarea>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('createModal').classList.add('hidden')"
+                    class="flex-1 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="flex-1 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow transition-colors">
+                    Save Activity
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

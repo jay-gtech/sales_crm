@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-8 bg-slate-50 min-h-screen">
+
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Reports & Analytics</h1>
+            <p class="text-sm text-slate-500 mt-1">Live snapshot of your CRM pipeline</p>
+        </div>
+        <span class="text-xs text-slate-400 bg-white border border-slate-200 rounded-lg px-3 py-1.5">
+            <i class="fas fa-circle text-green-400 mr-1 text-[8px]"></i> Live data
+        </span>
+    </div>
+
+    <!-- ── Summary Cards ──────────────────────────────────────────────── -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Leads</p>
+            <p class="text-3xl font-bold text-slate-800 mt-2">{{ data.total_leads }}</p>
+            <p class="text-[11px] text-slate-400 mt-1">All time</p>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Converted</p>
+            <p class="text-3xl font-bold text-emerald-600 mt-2">{{ data.converted_leads }}</p>
+            <p class="text-[11px] text-slate-400 mt-1">Won / Converted</p>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Conversion Rate</p>
+            <p class="text-3xl font-bold text-blue-600 mt-2">{{ data.conversion_rate }}%</p>
+            <p class="text-[11px] text-slate-400 mt-1">Leads → Won</p>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pipeline Value</p>
+            <p class="text-3xl font-bold text-slate-800 mt-2">${{ "{:,.0f}".format(data.total_deal_value) }}</p>
+            <p class="text-[11px] text-slate-400 mt-1">{{ data.total_deals }} deal{{ 's' if data.total_deals != 1 else '' }}</p>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Won Revenue</p>
+            <p class="text-3xl font-bold text-emerald-600 mt-2">${{ "{:,.0f}".format(data.won_deal_value) }}</p>
+            <p class="text-[11px] text-slate-400 mt-1">{{ data.won_deals }} closed won</p>
+        </div>
+
+    </div>
+
+    <!-- ── Main Grid ──────────────────────────────────────────────────── -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+        <!-- Leads by Status -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h2 class="text-sm font-bold text-slate-700 uppercase tracking-widest mb-5">
+                <i class="fas fa-funnel-dollar mr-2 text-blue-400"></i>Leads by Status
+            </h2>
+            {% if data.leads_by_status %}
+            <div class="space-y-3">
+                {% set max_status = data.leads_by_status[0].count if data.leads_by_status else 1 %}
+                {% for row in data.leads_by_status %}
+                {% set pct = (row.count / max_status * 100) | int %}
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="font-semibold text-slate-700">{{ row.status }}</span>
+                        <span class="font-bold text-slate-500">{{ row.count }}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-blue-500 h-2 rounded-full transition-all" style="width: {{ pct }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-slate-400 text-sm italic text-center py-8">No leads yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Leads by Source -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h2 class="text-sm font-bold text-slate-700 uppercase tracking-widest mb-5">
+                <i class="fas fa-satellite-dish mr-2 text-purple-400"></i>Leads by Source
+            </h2>
+            {% if data.leads_by_source %}
+            <div class="space-y-3">
+                {% set max_source = data.leads_by_source[0].count if data.leads_by_source else 1 %}
+                {% set source_colors = {
+                    'website':    'bg-blue-500',
+                    'facebook':   'bg-indigo-500',
+                    'google_ads': 'bg-yellow-500',
+                    'email':      'bg-green-500',
+                    'whatsapp':   'bg-emerald-500',
+                    'manual':     'bg-slate-400'
+                } %}
+                {% for row in data.leads_by_source %}
+                {% set pct = (row.count / max_source * 100) | int %}
+                {% set bar_color = source_colors.get(row.source, 'bg-slate-400') %}
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="font-semibold text-slate-700 capitalize">{{ row.source.replace('_', ' ') }}</span>
+                        <span class="font-bold text-slate-500">{{ row.count }}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="{{ bar_color }} h-2 rounded-full transition-all" style="width: {{ pct }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-slate-400 text-sm italic text-center py-8">No source data yet.</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- ── Bottom Grid ────────────────────────────────────────────────── -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Deal Pipeline by Stage -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h2 class="text-sm font-bold text-slate-700 uppercase tracking-widest mb-5">
+                <i class="fas fa-chart-bar mr-2 text-green-400"></i>Pipeline by Stage
+            </h2>
+            {% if data.deals_by_stage %}
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100">
+                        <th class="text-left pb-2">Stage</th>
+                        <th class="text-center pb-2">Deals</th>
+                        <th class="text-right pb-2">Value</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for row in data.deals_by_stage %}
+                    <tr>
+                        <td class="py-2.5 font-semibold text-slate-700">
+                            <span class="inline-block w-2 h-2 rounded-full mr-2
+                                {% if row.stage == 'Closed Won' %}bg-emerald-500
+                                {% elif row.stage == 'Closed Lost' %}bg-red-400
+                                {% elif row.stage in ['Proposal', 'Negotiation'] %}bg-yellow-400
+                                {% else %}bg-blue-400{% endif %}">
+                            </span>
+                            {{ row.stage }}
+                        </td>
+                        <td class="py-2.5 text-center text-slate-500">{{ row.count }}</td>
+                        <td class="py-2.5 text-right font-bold text-slate-700">${{ "{:,.0f}".format(row.value) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-slate-400 text-sm italic text-center py-8">No deals in the pipeline.</p>
+            {% endif %}
+        </div>
+
+        <!-- Recent Leads -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-sm font-bold text-slate-700 uppercase tracking-widest">
+                    <i class="fas fa-user-plus mr-2 text-orange-400"></i>Recent Leads
+                </h2>
+                <a href="/leads" class="text-[10px] font-bold text-blue-600 hover:underline uppercase tracking-widest">View All →</a>
+            </div>
+            {% if data.recent_leads %}
+            <div class="space-y-3">
+                {% for lead in data.recent_leads %}
+                <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold border border-blue-100">
+                            {{ (lead.first_name or 'L')[0] }}
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">{{ lead.first_name or '' }} {{ lead.last_name or '' }}</p>
+                            <p class="text-[10px] text-slate-400">{{ lead.company or '—' }}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full
+                            {% if lead.source == 'website' %}bg-blue-50 text-blue-600
+                            {% elif lead.source == 'facebook' %}bg-indigo-50 text-indigo-600
+                            {% elif lead.source == 'google_ads' %}bg-yellow-50 text-yellow-700
+                            {% elif lead.source == 'email' %}bg-green-50 text-green-600
+                            {% elif lead.source == 'whatsapp' %}bg-emerald-50 text-emerald-600
+                            {% else %}bg-slate-100 text-slate-500{% endif %}">
+                            {{ (lead.source or 'direct').replace('_', ' ') }}
+                        </span>
+                        <p class="text-[10px] text-slate-400 mt-0.5">{{ lead.created_at.strftime('%d %b') if lead.created_at else '' }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-slate-400 text-sm italic text-center py-8">No leads yet.</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- ── AI Insights ────────────────────────────────────────────────── -->
+    <div class="mt-6 bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-sm font-bold text-slate-700 uppercase tracking-widest mb-5">
+            <i class="fas fa-lightbulb mr-2 text-amber-400"></i>Actionable Insights
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for insight in data.insights %}
+            <div class="flex items-start space-x-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                <span class="text-amber-500 mt-0.5 shrink-0"><i class="fas fa-arrow-trend-up"></i></span>
+                <p class="text-sm text-slate-700 font-medium">{{ insight }}</p>
+            </div>
+            {% else %}
+            <p class="text-slate-400 text-sm italic col-span-2 text-center py-4">No insights available yet — add more leads and deals.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ── Stage Funnel ───────────────────────────────────────────────── -->
+    <div class="mt-6 bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-sm font-bold text-slate-700 uppercase tracking-widest mb-5">
+            <i class="fas fa-filter mr-2 text-blue-400"></i>Lead Stage Funnel (Drop-off Analysis)
+        </h2>
+        {% set funnel_stages = ['New', 'Contacted', 'Qualified', 'Proposal Sent', 'Negotiation', 'Won/Lost', 'Converted'] %}
+        {% set funnel_colors = ['bg-slate-400', 'bg-blue-400', 'bg-indigo-400', 'bg-purple-400', 'bg-amber-400', 'bg-emerald-500', 'bg-green-600'] %}
+        {% if data.leads_by_status %}
+        {% set max_count = data.leads_by_status[0].count if data.leads_by_status else 1 %}
+        <div class="space-y-2">
+            {% for row in data.leads_by_status %}
+            {% set pct = [(row.count * 100 // (max_count if max_count > 0 else 1)), 100] | min %}
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-semibold text-slate-600 w-32 shrink-0">{{ row.status }}</span>
+                <div class="flex-1 bg-slate-100 rounded-full h-5 relative overflow-hidden">
+                    <div class="h-full bg-blue-500 rounded-full flex items-center justify-end pr-2 transition-all" style="width: {{ pct }}%">
+                        <span class="text-[10px] font-bold text-white">{{ row.count }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="text-[10px] text-slate-400 mt-4">
+            <i class="fas fa-info-circle mr-1"></i>
+            Bars show relative size. Low counts in later stages indicate drop-off opportunities.
+        </p>
+        {% else %}
+        <p class="text-slate-400 text-sm italic text-center py-8">No lead data yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- ── API Reference (demo helper) ───────────────────────────────── -->
+    <div class="mt-6 bg-slate-800 rounded-xl p-6 text-white">
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
+            <i class="fas fa-code mr-2"></i>Lead Capture API — Demo Endpoints
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+            <div>
+                <p class="text-slate-400 mb-2 font-sans font-bold text-[10px] uppercase">Public (no auth)</p>
+                <code class="block bg-slate-900 rounded px-3 py-2 text-green-400">POST /api/public/lead</code>
+            </div>
+            <div>
+                <p class="text-slate-400 mb-2 font-sans font-bold text-[10px] uppercase">Mock Sources</p>
+                <div class="space-y-1">
+                    <code class="block bg-slate-900 rounded px-3 py-1.5 text-blue-400">POST /api/mock/facebook-lead</code>
+                    <code class="block bg-slate-900 rounded px-3 py-1.5 text-yellow-400">POST /api/mock/google-lead</code>
+                    <code class="block bg-slate-900 rounded px-3 py-1.5 text-emerald-400">POST /api/mock/email-lead</code>
+                    <code class="block bg-slate-900 rounded px-3 py-1.5 text-purple-400">POST /api/mock/whatsapp-lead</code>
+                </div>
+            </div>
+        </div>
+        <p class="text-slate-500 text-[10px] mt-4">
+            Payload: <code class="text-slate-300">{"name": "Jane Doe", "email": "jane@example.com", "phone": "555-0100", "company": "Acme"}</code>
+        </p>
+    </div>
+
+</div>
+{% endblock %}

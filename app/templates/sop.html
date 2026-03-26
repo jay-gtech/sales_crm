@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-8 bg-slate-50 min-h-screen max-w-4xl">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Standard Operating Procedures</h1>
+            <p class="text-sm text-slate-500 mt-1">Official CRM process guidelines for all team members</p>
+        </div>
+        <span class="text-xs font-bold text-slate-400 bg-white border border-slate-200 rounded-lg px-3 py-1.5">
+            <i class="fas fa-file-alt mr-1"></i> v1.0 — Production
+        </span>
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-8">
+        <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Table of Contents</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <a href="#lead-management" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-blue-50 hover:border-blue-200 border border-transparent transition-all group">
+                <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-sm font-bold">1</div>
+                <div>
+                    <p class="text-sm font-bold text-slate-700 group-hover:text-blue-700">Lead Management Process</p>
+                    <p class="text-[10px] text-slate-400">Capture, qualify, and advance leads</p>
+                </div>
+            </a>
+            <a href="#deal-pipeline" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 border border-transparent transition-all group">
+                <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-sm font-bold">2</div>
+                <div>
+                    <p class="text-sm font-bold text-slate-700 group-hover:text-emerald-700">Deal Pipeline Process</p>
+                    <p class="text-[10px] text-slate-400">Managing active deals to close</p>
+                </div>
+            </a>
+            <a href="#activity-tracking" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-purple-50 hover:border-purple-200 border border-transparent transition-all group">
+                <div class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-sm font-bold">3</div>
+                <div>
+                    <p class="text-sm font-bold text-slate-700 group-hover:text-purple-700">Activity Tracking</p>
+                    <p class="text-[10px] text-slate-400">Logging all customer interactions</p>
+                </div>
+            </a>
+            <a href="#best-practices" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-amber-50 hover:border-amber-200 border border-transparent transition-all group">
+                <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center text-sm font-bold">4</div>
+                <div>
+                    <p class="text-sm font-bold text-slate-700 group-hover:text-amber-700">Best Practices</p>
+                    <p class="text-[10px] text-slate-400">Team standards and data hygiene</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="space-y-8">
+
+        <!-- 1. Lead Management Process -->
+        <div id="lead-management" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-8 py-6 bg-blue-600 text-white">
+                <div class="flex items-center space-x-3">
+                    <span class="text-2xl">👥</span>
+                    <div>
+                        <h2 class="text-base font-bold">1. Lead Management Process</h2>
+                        <p class="text-xs text-blue-200 mt-0.5">From first contact to qualified opportunity</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-8">
+
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">1.1 Lead Capture</h3>
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-start space-x-3 p-3 border border-slate-100 rounded-xl">
+                        <i class="fas fa-globe text-blue-400 mt-0.5 w-4 shrink-0"></i>
+                        <div>
+                            <p class="text-sm font-semibold text-slate-700">Web / API</p>
+                            <p class="text-xs text-slate-400">Leads submitted via <code class="bg-slate-100 px-1 rounded">/api/public/lead</code> are automatically created in the system with source <em>website</em>.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3 p-3 border border-slate-100 rounded-xl">
+                        <i class="fas fa-user-plus text-blue-400 mt-0.5 w-4 shrink-0"></i>
+                        <div>
+                            <p class="text-sm font-semibold text-slate-700">Manual Entry</p>
+                            <p class="text-xs text-slate-400">Sales reps create leads directly via the <strong>Add Lead</strong> button on the Leads page. All required fields must be filled.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3 p-3 border border-slate-100 rounded-xl">
+                        <i class="fas fa-file-csv text-blue-400 mt-0.5 w-4 shrink-0"></i>
+                        <div>
+                            <p class="text-sm font-semibold text-slate-700">Bulk Import</p>
+                            <p class="text-xs text-slate-400">Upload CSV files with columns: first_name, last_name, email, phone, company, status via <code class="bg-slate-100 px-1 rounded">POST /leads/import</code>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">1.2 Lead Qualification</h3>
+                <div class="overflow-x-auto mb-6">
+                    <table class="w-full text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase">
+                                <th class="text-left px-4 py-2.5 rounded-l-lg">Stage</th>
+                                <th class="text-left px-4 py-2.5">Definition</th>
+                                <th class="text-left px-4 py-2.5 rounded-r-lg">Next Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <tr>
+                                <td class="px-4 py-3"><span class="font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">New</span></td>
+                                <td class="px-4 py-3 text-slate-500">Lead just entered the system</td>
+                                <td class="px-4 py-3 text-slate-500">Assign to a sales rep within 24 hours</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3"><span class="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Contacted</span></td>
+                                <td class="px-4 py-3 text-slate-500">First outreach made</td>
+                                <td class="px-4 py-3 text-slate-500">Schedule a discovery call within 48 hours</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3"><span class="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">Qualified</span></td>
+                                <td class="px-4 py-3 text-slate-500">Budget, authority, need, timeline confirmed</td>
+                                <td class="px-4 py-3 text-slate-500">Prepare proposal or convert to deal</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3"><span class="font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">Proposal Sent</span></td>
+                                <td class="px-4 py-3 text-slate-500">Formal proposal delivered</td>
+                                <td class="px-4 py-3 text-slate-500">Follow up within 3 business days</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3"><span class="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Negotiation</span></td>
+                                <td class="px-4 py-3 text-slate-500">Terms under discussion</td>
+                                <td class="px-4 py-3 text-slate-500">Convert to deal and manage in pipeline</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3"><span class="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Converted</span></td>
+                                <td class="px-4 py-3 text-slate-500">Lead became an active deal</td>
+                                <td class="px-4 py-3 text-slate-500">Manage through Deals pipeline</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">1.3 Disqualification</h3>
+                <p class="text-sm text-slate-600">Mark as <strong>Won/Lost</strong> if the lead is unresponsive after 3 follow-up attempts, explicitly declined, or is outside your target market. Add a note in the activity log explaining the reason.</p>
+            </div>
+        </div>
+
+        <!-- 2. Deal Pipeline Process -->
+        <div id="deal-pipeline" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-8 py-6 bg-emerald-600 text-white">
+                <div class="flex items-center space-x-3">
+                    <span class="text-2xl">🤝</span>
+                    <div>
+                        <h2 class="text-base font-bold">2. Deal Pipeline Process</h2>
+                        <p class="text-xs text-emerald-200 mt-0.5">From opportunity creation to revenue recognition</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-8">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">2.1 Pipeline Stages</h3>
+                <div class="space-y-3 mb-6">
+                    {% for stage, desc, sla in [
+                        ('New', 'Deal created from lead conversion or manually. Needs qualification.', 'Assign owner within 1 day'),
+                        ('Qualification', 'Validating scope, budget, and timeline.', 'Complete within 1 week'),
+                        ('Needs Analysis', 'Deep dive into customer requirements and pain points.', 'Document needs within 5 days'),
+                        ('Proposal', 'Formal written proposal sent to prospect.', 'Follow up within 3 days'),
+                        ('Negotiation', 'Commercial and contractual terms under discussion.', 'Resolve open items within 1 week'),
+                        ('Closed Won', 'Contract signed. Handoff to delivery team.', 'Initiate onboarding within 2 days'),
+                        ('Closed Lost', 'Deal lost. Document reason for analysis.', 'Log loss reason as activity')
+                    ] %}
+                    <div class="flex items-start space-x-4 p-4 border border-slate-100 rounded-xl">
+                        <div class="shrink-0 w-2 h-2 rounded-full mt-2
+                            {% if stage == 'Closed Won' %}bg-emerald-500
+                            {% elif stage == 'Closed Lost' %}bg-red-400
+                            {% elif stage in ['Proposal', 'Negotiation'] %}bg-amber-400
+                            {% else %}bg-blue-400{% endif %}">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-bold text-slate-700">{{ stage }}</p>
+                                <span class="text-[10px] text-slate-400 font-medium">SLA: {{ sla }}</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">{{ desc }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">2.2 Deal Hygiene Requirements</h3>
+                <ul class="space-y-2 text-sm text-slate-600">
+                    <li class="flex items-start space-x-2"><i class="fas fa-check-circle text-emerald-500 mt-0.5 shrink-0"></i><span>Every deal must have an <strong>owner</strong>, <strong>closing date</strong>, and <strong>deal value</strong> set before moving past Qualification.</span></li>
+                    <li class="flex items-start space-x-2"><i class="fas fa-check-circle text-emerald-500 mt-0.5 shrink-0"></i><span>Update the deal <strong>stage</strong> at least weekly. Stale deals (no update in 14 days) must be reviewed.</span></li>
+                    <li class="flex items-start space-x-2"><i class="fas fa-check-circle text-emerald-500 mt-0.5 shrink-0"></i><span>Log at least one <strong>activity</strong> per week per active deal to maintain a complete interaction history.</span></li>
+                    <li class="flex items-start space-x-2"><i class="fas fa-check-circle text-emerald-500 mt-0.5 shrink-0"></i><span>Set a <strong>follow-up date</strong> after every customer interaction.</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 3. Activity Tracking -->
+        <div id="activity-tracking" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-8 py-6 bg-purple-600 text-white">
+                <div class="flex items-center space-x-3">
+                    <span class="text-2xl">📋</span>
+                    <div>
+                        <h2 class="text-base font-bold">3. Activity Tracking</h2>
+                        <p class="text-xs text-purple-200 mt-0.5">Every customer interaction must be recorded</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-8">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">3.1 Activity Types</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="p-4 bg-blue-50 rounded-xl border border-blue-100 text-center">
+                        <span class="text-3xl">📞</span>
+                        <p class="text-xs font-bold text-blue-700 mt-2">Call</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Phone calls, video calls</p>
+                    </div>
+                    <div class="p-4 bg-purple-50 rounded-xl border border-purple-100 text-center">
+                        <span class="text-3xl">📧</span>
+                        <p class="text-xs font-bold text-purple-700 mt-2">Email</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Emails, LinkedIn messages</p>
+                    </div>
+                    <div class="p-4 bg-orange-50 rounded-xl border border-orange-100 text-center">
+                        <span class="text-3xl">📅</span>
+                        <p class="text-xs font-bold text-orange-700 mt-2">Meeting</p>
+                        <p class="text-[10px] text-slate-400 mt-1">In-person or virtual</p>
+                    </div>
+                    <div class="p-4 bg-green-50 rounded-xl border border-green-100 text-center">
+                        <span class="text-3xl">✅</span>
+                        <p class="text-xs font-bold text-green-700 mt-2">Task</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Internal follow-ups, to-dos</p>
+                    </div>
+                </div>
+
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">3.2 Logging Requirements</h3>
+                <ul class="space-y-2 text-sm text-slate-600 mb-6">
+                    <li class="flex items-start space-x-2"><i class="fas fa-check-circle text-purple-500 mt-0.5 shrink-0"></i><span>Log every <strong>call, email, and meeting</strong> within the same business day.</span></li>
+                    <li class="flex items-start space-x-2"><i class="fas fa-check-circle text-purple-500 mt-0.5 shrink-0"></i><span>Include a <strong>brief description</strong> of what was discussed or decided.</span></li>
+                    <li class="flex items-start space-x-2"><i class="fas fa-check-circle text-purple-500 mt-0.5 shrink-0"></i><span>Always link the activity to the relevant <strong>lead or deal</strong> for traceability.</span></li>
+                    <li class="flex items-start space-x-2"><i class="fas fa-check-circle text-purple-500 mt-0.5 shrink-0"></i><span>Mark activities as <strong>completed</strong> after they are done — don't leave pending items stale.</span></li>
+                </ul>
+
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">3.3 Auto-Logged Activities</h3>
+                <p class="text-xs text-slate-500 mb-3">The following are automatically recorded by the system — no manual entry needed:</p>
+                <div class="space-y-2">
+                    <div class="flex items-center space-x-2 text-xs text-slate-600 p-2 bg-slate-50 rounded-lg">
+                        <i class="fas fa-robot text-slate-400 w-4"></i>
+                        <span>New lead created</span>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs text-slate-600 p-2 bg-slate-50 rounded-lg">
+                        <i class="fas fa-robot text-slate-400 w-4"></i>
+                        <span>Lead status changed</span>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs text-slate-600 p-2 bg-slate-50 rounded-lg">
+                        <i class="fas fa-robot text-slate-400 w-4"></i>
+                        <span>Deal created from lead conversion</span>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs text-slate-600 p-2 bg-slate-50 rounded-lg">
+                        <i class="fas fa-robot text-slate-400 w-4"></i>
+                        <span>Deal stage changed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Best Practices -->
+        <div id="best-practices" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-8 py-6 bg-amber-500 text-white">
+                <div class="flex items-center space-x-3">
+                    <span class="text-2xl">⭐</span>
+                    <div>
+                        <h2 class="text-base font-bold">4. Best Practices</h2>
+                        <p class="text-xs text-amber-100 mt-0.5">Team standards for maximum CRM effectiveness</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Data Quality</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start space-x-3">
+                                <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
+                                <p class="text-xs text-slate-600">Always use a valid, reachable <strong>email address</strong> for every lead — duplicates are automatically detected.</p>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
+                                <p class="text-xs text-slate-600">Record the <strong>lead source</strong> accurately — this data drives channel ROI analysis in the Reports section.</p>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
+                                <p class="text-xs text-slate-600">Do not create <strong>duplicate leads</strong>. Use the search bar to check for existing records before adding.</p>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
+                                <p class="text-xs text-slate-600">Fill in <strong>company name</strong> for B2B leads — it enables account-level reporting.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Sales Discipline</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start space-x-3">
+                                <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
+                                <p class="text-xs text-slate-600">Review the <strong>Reports dashboard</strong> weekly to identify drop-off stages and improve conversion.</p>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
+                                <p class="text-xs text-slate-600">Use the <strong>AI score</strong> on lead detail pages to prioritize which leads to contact first.</p>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
+                                <p class="text-xs text-slate-600">Set a <strong>follow-up date</strong> on every deal before closing the browser tab — stale deals lose momentum.</p>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
+                                <p class="text-xs text-slate-600">When losing a deal, <strong>log the reason</strong> as an activity note — this feeds the retrospective review.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Security & Access</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start space-x-3">
+                                <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
+                                <p class="text-xs text-slate-600">Always <strong>logout</strong> when using shared devices or leaving your workstation.</p>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
+                                <p class="text-xs text-slate-600">Do not share login credentials. Each user must have their own account.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Reporting Cadence</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <p class="text-xs font-semibold text-slate-600">Daily</p>
+                                <p class="text-xs text-slate-400">Check pending activities and follow-ups</p>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <p class="text-xs font-semibold text-slate-600">Weekly</p>
+                                <p class="text-xs text-slate-400">Review pipeline and update deal stages</p>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <p class="text-xs font-semibold text-slate-600">Monthly</p>
+                                <p class="text-xs text-slate-400">Review Reports dashboard and conversion trends</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-slate-800 rounded-2xl p-6 text-white flex items-center justify-between">
+            <div>
+                <p class="text-sm font-bold">Need a quick walkthrough?</p>
+                <p class="text-xs text-slate-400 mt-1">Visit the Help Guide for step-by-step instructions on each feature.</p>
+            </div>
+            <a href="/help" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all">
+                Open Help Guide <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

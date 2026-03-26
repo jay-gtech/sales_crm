@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-8 bg-slate-50/50 min-h-screen">
+    <!-- Breadcrumb & Actions -->
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center space-x-3 text-sm">
+            <a href="/leads" class="text-blue-600 hover:underline font-medium">Leads</a>
+            <span class="text-slate-400">/</span>
+            <span class="text-slate-800 font-bold uppercase tracking-wider text-xs">{{ lead.first_name }} {{ lead.last_name }}</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="window.history.back()" class="px-4 py-2 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-50 transition-all">Back</button>
+            {% if lead.status != 'Converted' %}
+            <button onclick="openConvertModal({{ lead.id }}, '{{ lead.first_name }} {{ lead.last_name }}')" class="px-6 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition-all">Convert to Deal</button>
+            {% endif %}
+            <button class="px-6 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all">Edit Profile</button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Info Card -->
+        <div class="lg:col-span-2 space-y-8">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-8 py-8 border-b border-slate-100 flex items-start justify-between">
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg mr-6">
+                            {{ (lead.first_name or 'L')[0] }}{{ (lead.last_name or 'E')[0] }}
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800">{{ lead.salutation or '' }} {{ lead.first_name }} {{ lead.last_name }}</h2>
+                            <p class="text-slate-500 font-medium mt-1">{{ lead.title or 'Strategic Lead' }} at <span class="text-blue-600 font-bold">{{ lead.company or 'Unspecified Corp' }}</span></p>
+                            <div class="mt-4 flex items-center space-x-4">
+                                <span class="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full border border-slate-200 uppercase tracking-widest">{{ lead.source or 'Direct' }}</span>
+                                <span class="px-3 py-1 {% if lead.status == 'Qualified' %}bg-emerald-50 text-emerald-700 border-emerald-100{% elif lead.status == 'New' %}bg-blue-50 text-blue-700 border-blue-100{% else %}bg-slate-50 text-slate-600 border-slate-200{% endif %} text-[10px] font-bold rounded-full border uppercase tracking-widest">{{ lead.status }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="px-8 py-8 grid grid-cols-2 gap-y-8">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Email Address</p>
+                        <p class="text-sm font-semibold text-slate-800 flex items-center">
+                            <i class="fas fa-envelope mr-2 text-slate-300"></i> {{ lead.email }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Phone Number</p>
+                        <p class="text-sm font-semibold text-slate-800 flex items-center">
+                            <i class="fas fa-phone mr-2 text-slate-300"></i> {{ lead.phone }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Lead Scoring (AI)</p>
+                        <div class="flex items-center mt-1">
+                            <span class="text-xl font-bold text-slate-900 mr-3">{{ lead.lead_score or 0 }}</span>
+                            <div class="flex-1 max-w-[120px] h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full {% if (lead.lead_score or 0) > 70 %}bg-emerald-500{% elif (lead.lead_score or 0) > 40 %}bg-amber-500{% else %}bg-slate-400{% endif %}" style="width: {{ lead.lead_score or 0 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Owner</p>
+                        <p class="text-sm font-semibold text-slate-800 flex items-center">
+                            <i class="fas fa-user-circle mr-2 text-slate-300"></i> {{ user.email }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Timeline -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest">Interaction Timeline</h3>
+                    <a href="/activities" class="text-[10px] font-bold text-blue-600 hover:underline uppercase tracking-widest">View All</a>
+                </div>
+                {% set type_icon = {'Call': '📞', 'Email': '📧', 'Meeting': '📅', 'Task': '✅'} %}
+                {% if lead_activities %}
+                <div class="relative border-l-2 border-slate-100 ml-3 space-y-0">
+                    {% for a in lead_activities %}
+                    <div class="relative ml-6 mb-5 last:mb-0">
+                        <span class="absolute -left-[29px] top-2 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm
+                            {% if a.status == 'completed' %}bg-emerald-500{% else %}bg-amber-400{% endif %}">
+                        </span>
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <p class="text-xs font-bold text-slate-800">
+                                    {{ type_icon.get(a.activity_type, '📋') }} {{ a.title or a.activity_type }}
+                                </p>
+                                {% if a.description %}
+                                <p class="text-[11px] text-slate-500 mt-0.5">{{ a.description }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="shrink-0 text-right">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full
+                                    {% if a.status == 'completed' %}bg-emerald-50 text-emerald-700{% else %}bg-amber-50 text-amber-700{% endif %}">
+                                    {% if a.status == 'completed' %}✓ Done{% else %}Pending{% endif %}
+                                </span>
+                                <p class="text-[10px] text-slate-400 mt-0.5">
+                                    {{ a.created_at.strftime('%d %b, %H:%M') if a.created_at else '' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center py-8 text-center">
+                    <span class="text-3xl mb-2">📋</span>
+                    <p class="text-xs text-slate-400 italic">No activities logged for this lead yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar Actions -->
+        <div class="space-y-8">
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 text-white shadow-xl">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 font-semibold">AI Assistant</h3>
+                <div class="space-y-4">
+                    <button onclick="getLeadScore({{ lead.id }})" class="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl flex items-center px-4 transition-all group">
+                        <i class="fas fa-brain text-blue-400 mr-4 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-xs font-bold">Refresh AI Insights</span>
+                    </button>
+                    <button onclick="generateEmail({{ lead.id }})" class="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl flex items-center px-4 transition-all group">
+                        <i class="fas fa-magic text-purple-400 mr-4 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-xs font-bold">Draft Intel Email</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">Lead Health</h3>
+                <div class="flex items-center justify-center p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <div class="text-center">
+                        <i class="fas fa-bolt text-amber-500 text-3xl mb-3"></i>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Profile Match</p>
+                        <p class="text-xl font-bold text-slate-800 mt-1">84%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Convert to Deal Modal -->
+<div id="convertModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 transition-all">
+    <div class="relative top-24 mx-auto p-1 w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-100 bg-emerald-50/50">
+                <h3 class="text-xl font-bold text-slate-800">Finalize Opportunity</h3>
+                <p class="text-xs text-emerald-600 font-bold uppercase tracking-widest mt-1">Lead to Deal Conversion</p>
+            </div>
+            
+            <form id="convertForm" action="/deals/convert/{{ lead.id }}" method="POST" class="p-6">
+                <p class="text-xs text-slate-500 mb-6 font-medium">Elevating <span id="convertLeadName" class="text-slate-900 font-bold">{{ lead.first_name }} {{ lead.last_name }}</span> to an active deal in your pipeline.</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Opportunity Name</label>
+                        <input type="text" name="deal_name" id="deal_name" value="{{ lead.first_name }} {{ lead.last_name }} - Deal" required class="w-full bg-slate-50 border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none py-2.5 px-3 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Expected Revenue ($)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-slate-400 text-sm">$</span>
+                            <input type="number" name="deal_amount" step="0.01" required value="0.00" class="w-full bg-slate-50 border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none py-2.5 pl-7 pr-3 transition-all">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mt-8">
+                    <button type="button" onclick="document.getElementById('convertModal').classList.add('hidden')" class="py-2.5 bg-white hover:bg-slate-50 text-slate-600 font-bold rounded-xl border border-slate-200 transition-all text-sm">
+                        Keep as Lead
+                    </button>
+                    <button type="submit" class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/30 transition-all transform hover:-translate-y-0.5 text-sm">
+                        Create Deal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openConvertModal(leadId, name) {
+    document.getElementById('convertModal').classList.remove('hidden');
+}
+async function getLeadScore(leadId) {
+    const res = await fetch(`/ai/score/${leadId}`);
+    if (res.ok) {
+        const data = await res.json();
+        alert(`AI Lead Score: ${data.score}/100\nBased on: ${data.analysis || 'Engagement and historical data'}`);
+    } else {
+        alert("Failed to get score");
+    }
+}
+async function generateEmail(leadId) {
+    const res = await fetch(`/ai/email/${leadId}`);
+    if (res.ok) {
+        const data = await res.json();
+        alert(`AI Personalized Email Draft:\n\n${data.draft}`);
+    } else {
+        alert("Failed to generate email");
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/deals/{{ deal.id }}" class="text-blue-600 hover:underline">← Cancel and Back to Detail</a>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Deal: {{ deal.name }}</h2>
+
+    <form action="/deals/{{ deal.id }}" method="POST" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Deal Name</label>
+                <input type="text" name="name" value="{{ deal.name }}" required
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Amount ($)</label>
+                <input type="number" step="0.01" name="amount" value="{{ deal.amount }}" required
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Stage</label>
+                <select name="stage"
+                    class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    {% for stage in stages %}
+                    <option value="{{ stage }}" {% if deal.stage==stage %}selected{% endif %}>{{ stage }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Closing Date</label>
+                <input type="date" name="closing_date"
+                    value="{{ deal.closing_date.strftime('%Y-%m-%d') if deal.closing_date else '' }}"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Follow-up Date</label>
+                <input type="date" name="follow_up_date"
+                    value="{{ deal.follow_up_date.strftime('%Y-%m-%d') if deal.follow_up_date else '' }}"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Primary Contact</label>
+                <select name="contact_id" required
+                    class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    {% for contact in contacts %}
+                    <option value="{{ contact.id }}" {% if deal.contact_id==contact.id %}selected{% endif %}>{{
+                        contact.first_name }} {{ contact.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+                <textarea name="description" rows="5"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ deal.description or '' }}</textarea>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between mt-8">
+            <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline w-full">
+                Apply Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
