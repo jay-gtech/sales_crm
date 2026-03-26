@@ -7,6 +7,7 @@ from app.api.deps import get_current_user
 from app.models.user import User
 from app.schemas.meeting import MeetingCreate
 from app.services.meeting_service import process_meeting
+from app.services.dashboard_service import get_dashboard_data
 
 router = APIRouter(prefix="/meetings", tags=["Meetings"])
 templates = Jinja2Templates(directory="app/templates")
@@ -21,13 +22,17 @@ async def process_new_meeting(
 ):
     if not title.strip() or not transcript.strip():
         return RedirectResponse(url="/?error=MissingInput", status_code=303)
-        
+
     meeting_in = MeetingCreate(title=title, transcript=transcript)
     db_meeting = process_meeting(db, meeting_in, user.id)
-    
-    # Render Dashboard directly to show results without needing a redirect
+
+    # index.html requires `data` (dashboard KPIs) — fetch it so the template renders fully
+    dashboard_data = get_dashboard_data(db, user.id)
+
     return templates.TemplateResponse("index.html", {
         "request": request,
+        "title": "Dashboard",
         "user": user,
-        "processed_meeting": db_meeting
+        "data": dashboard_data,
+        "processed_meeting": db_meeting,
     })
