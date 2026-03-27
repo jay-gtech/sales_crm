@@ -24,3 +24,8 @@ pydantic-settings==2.1.0
 # ── HTTP Client (AI integrations) ─────────────────────────────────────────
 httpx==0.27.0
 anyio==4.12.1
+
+# ── Communication (optional) ──────────────────────────────────────────────
+# Install twilio only if WhatsApp sending is needed.
+# pip install twilio
+# twilio>=8.0.0

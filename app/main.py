@@ -7,7 +7,7 @@ from fastapi.responses import RedirectResponse
 
 from app.core.config import settings
 import app.db.base  # noqa: F401 — registers ALL models with SQLAlchemy before any route imports them
-from app.api.routes import auth, leads, contacts, deals, activities, ai, public, reminders
+from app.api.routes import auth, leads, contacts, deals, activities, ai, public, reminders, communication
 from app.api.endpoints import meeting, chatbot
 from app.api.deps import get_current_user
 
@@ -137,6 +137,7 @@ app.include_router(meeting.router)
 app.include_router(chatbot.router)
 app.include_router(public.router)
 app.include_router(reminders.router)
+app.include_router(communication.router)
 
 from sqlalchemy.orm import Session
 from app.db.session import get_db

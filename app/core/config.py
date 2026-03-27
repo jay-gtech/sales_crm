@@ -9,7 +9,22 @@ class Settings(BaseSettings):
     # Set to False before going to production to disable demo console logging and badge
     DEMO_MODE: bool = True
 
+    # ── Email (SMTP) — leave empty to disable ─────────────────────────────
+    SMTP_SERVER: str = ""
+    SMTP_PORT: int = 587
+    SMTP_EMAIL: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_NAME: str = "CRM Platform"
+
+    # ── WhatsApp (Twilio) — leave empty to disable ─────────────────────────
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_WHATSAPP_NUMBER: str = ""    # e.g. "whatsapp:+14155238886"
+
     class Config:
         case_sensitive = True
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        extra = "ignore"               # silently ignore unknown env vars
 
 settings = Settings()
