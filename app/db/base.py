@@ -8,3 +8,4 @@ from app.models.deal_history import DealHistory  # noqa
 from app.models.activity import Activity  # noqa
 from app.models.meeting import Meeting, MeetingInsight  # noqa
 from app.models.workflow import Workflow, WorkflowRule  # noqa
+from app.models.reminder import Reminder  # noqa

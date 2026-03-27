@@ -73,5 +73,287 @@
         {% endblock %}
     </div>
 
+
+<!-- ─── Reminder Notification Center ─────────────────────────────────────── -->
+<div id="reminder-container"
+     style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:12px;max-width:360px;pointer-events:none;">
+</div>
+
+<style>
+  /* ── Reminder Toast ───────────────────────────────────────────────────── */
+  .reminder-toast {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid #334155;
+    border-left: 4px solid #3b82f6;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    color: #f1f5f9;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+    pointer-events: all;
+    position: relative;
+    animation: rToastIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .reminder-toast.dismissing {
+    opacity: 0;
+    transform: translateX(110%);
+  }
+  /* Progress bar — counts down to auto-dismiss */
+  .reminder-toast .r-progress {
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 3px;
+    border-radius: 0 0 0 12px;
+    background: #3b82f6;
+    animation: rProgress 7s linear forwards;
+  }
+  .reminder-toast .r-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .reminder-toast .r-title {
+    font-weight: 600;
+    color: #f1f5f9;
+    flex: 1;
+    font-size: 13px;
+  }
+  .reminder-toast .r-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .reminder-toast .r-badge.lead     { background:#1d4ed8; color:#bfdbfe; }
+  .reminder-toast .r-badge.deal     { background:#065f46; color:#a7f3d0; }
+  .reminder-toast .r-badge.activity { background:#7c2d12; color:#fed7aa; }
+  .reminder-toast .r-badge.other    { background:#374151; color:#e5e7eb; }
+  .reminder-toast .r-desc {
+    font-size: 11px;
+    color: #94a3b8;
+    margin: 5px 0 2px;
+    line-height: 1.4;
+  }
+  .reminder-toast .r-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .reminder-toast .r-done-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    background: #3b82f6;
+    color: #fff;
+    transition: background 0.2s;
+  }
+  .reminder-toast .r-done-btn:hover { background: #2563eb; }
+  .reminder-toast .r-dismiss-btn {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    background: transparent;
+    color: #94a3b8;
+    transition: background 0.2s, color 0.2s;
+  }
+  .reminder-toast .r-dismiss-btn:hover { background: #1e293b; color: #f1f5f9; }
+  .reminder-toast .r-view-btn {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #1d4ed8;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    background: transparent;
+    color: #60a5fa;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    display: inline-flex;
+    align-items: center;
+  }
+  .reminder-toast .r-view-btn:hover { background: #1e3a5f; color: #93c5fd; }
+  @keyframes rToastIn {
+    from { opacity: 0; transform: translateX(110%) scale(0.95); }
+    to   { opacity: 1; transform: translateX(0)   scale(1); }
+  }
+  @keyframes rProgress {
+    from { width: 100%; }
+    to   { width: 0%; }
+  }
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Page-scoped dedup (in-memory only — resets on every page load) ────────
+  // Backend is the source of truth for cross-page cooldown.
+  var shownThisPage = new Set();
+
+  // ── Queue system: max 2 toasts visible at once ───────────────────────────
+  var MAX_VISIBLE   = 2;
+  var pendingQueue  = [];   // reminders waiting to be shown
+  var visibleCount  = 0;
+
+  function tryShowNext() {
+    while (visibleCount < MAX_VISIBLE && pendingQueue.length > 0) {
+      renderToast(pendingQueue.shift());
+    }
+  }
+
+  function onToastRemoved() {
+    visibleCount = Math.max(0, visibleCount - 1);
+    tryShowNext();
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function badgeClass(type) {
+    var t = (type || '').toLowerCase();
+    if (t === 'lead')     return 'lead';
+    if (t === 'deal')     return 'deal';
+    if (t === 'activity') return 'activity';
+    return 'other';
+  }
+
+  function detailUrl(type, id) {
+    if (!type || !id) return null;
+    var t = (type || '').toLowerCase();
+    if (t === 'lead') return '/leads/' + id;
+    if (t === 'deal') return '/deals/' + id;
+    if (t === 'activity') return '/activities';
+    return null;
+  }
+
+  function escHtml(str) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(str || ''));
+    return d.innerHTML;
+  }
+
+  function snoozeLabel(snoozeCount) {
+    var delays = [2, 10, 15];
+    var idx = Math.min(snoozeCount || 0, delays.length - 1);
+    return 'Snooze (' + delays[idx] + 'm)';
+  }
+
+  // ── Dismiss animation ─────────────────────────────────────────────────────
+  function removeToast(el) {
+    el.classList.add('dismissing');
+    setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+      onToastRemoved();
+    }, 320);
+  }
+
+  // ── API — state changes only ──────────────────────────────────────────────
+  function apiPost(url) {
+    return fetch(url, { method: 'POST', credentials: 'include' })
+      .catch(function (err) { console.warn('[Reminder] API error:', url, err); });
+  }
+
+  function markDone(reminderId, toastEl) {
+    apiPost('/api/reminders/' + reminderId + '/complete')
+      .finally(function () { removeToast(toastEl); });
+  }
+
+  function snoozeReminder(reminderId, toastEl) {
+    apiPost('/api/reminders/' + reminderId + '/dismiss')
+      .finally(function () { removeToast(toastEl); });
+  }
+
+  // ── Toast renderer ───────────────────────────────────────────────────────
+  function renderToast(r) {
+    var container = document.getElementById('reminder-container');
+    if (!container) return;
+
+    visibleCount++;
+
+    var type    = (r.related_type || '').toLowerCase();
+    var badge   = badgeClass(type);
+    var label   = type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Reminder';
+    var cnt     = r.snooze_count || 0;
+    var hint    = cnt > 0 ? ' <span style="font-size:10px;opacity:0.5">(×' + cnt + ')</span>' : '';
+    var url     = detailUrl(type, r.related_id);
+    var viewBtn = url
+      ? '<a class="r-view-btn" href="' + escHtml(url) + '">View Details</a>'
+      : '';
+
+    var toast = document.createElement('div');
+    toast.className = 'reminder-toast';
+    toast.innerHTML =
+      '<div class="r-progress"></div>' +
+      '<div class="r-header">' +
+        '<span class="r-title">🔔 ' + escHtml(r.title) + hint + '</span>' +
+        '<span class="r-badge ' + badge + '">' + escHtml(label) + '</span>' +
+      '</div>' +
+      (r.description ? '<div class="r-desc">' + escHtml(r.description) + '</div>' : '') +
+      '<div class="r-actions">' +
+        '<button class="r-done-btn">✓ Mark Done</button>' +
+        '<button class="r-dismiss-btn">' + snoozeLabel(cnt) + '</button>' +
+        viewBtn +
+      '</div>';
+
+    toast.querySelector('.r-done-btn').addEventListener('click', function () {
+      markDone(r.id, toast);
+    });
+    toast.querySelector('.r-dismiss-btn').addEventListener('click', function () {
+      snoozeReminder(r.id, toast);
+    });
+
+    // Auto-dismiss after 7 s — does NOT call any API (not mark done, not snooze)
+    var autoTimer = setTimeout(function () { removeToast(toast); }, 7000);
+
+    // Cancel auto-dismiss if user interacts
+    toast.addEventListener('mouseenter', function () { clearTimeout(autoTimer); });
+
+    container.appendChild(toast);
+  }
+
+  // ── Entry point — fetch ONCE on page load ─────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      fetch('/api/reminders/due', { credentials: 'include' })
+        .then(function (res) { return res.ok ? res.json() : []; })
+        .then(function (data) {
+          if (!Array.isArray(data)) return;
+          data.forEach(function (r) {
+            // In-memory dedup: never render same reminder twice in this page load
+            if (shownThisPage.has(r.id)) return;
+            shownThisPage.add(r.id);
+            pendingQueue.push(r);
+          });
+          tryShowNext();
+        })
+        .catch(function (err) {
+          console.warn('[Reminder] fetch failed (non-critical):', err);
+        });
+    } catch (e) {
+      console.warn('[Reminder] unexpected error:', e);
+    }
+  });
+}());
+</script>
+
+
+
+<!-- ─── End Reminder Notification Center ─────────────────────────────────── -->
+
 </body>
 </html>

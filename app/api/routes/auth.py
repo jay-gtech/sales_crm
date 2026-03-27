@@ -37,8 +37,8 @@ async def login_post(
         key="access_token",
         value=access_token,
         httponly=True,
-        max_age=1800,
-        expires=1800,
+        max_age=60 * 60 * 24 * 7,   # 7 days — matches ACCESS_TOKEN_EXPIRE_MINUTES
+        expires=60 * 60 * 24 * 7,
         samesite="lax"
     )
     return redirect_res
@@ -75,8 +75,8 @@ async def signup_post(
         key="access_token",
         value=access_token,
         httponly=True,
-        max_age=1800,
-        expires=1800,
+        max_age=60 * 60 * 24 * 7,   # 7 days — matches ACCESS_TOKEN_EXPIRE_MINUTES
+        expires=60 * 60 * 24 * 7,
         samesite="lax"
     )
     return redirect_res

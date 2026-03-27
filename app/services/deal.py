@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, List
 from sqlalchemy import or_, func
 from sqlalchemy.orm import Session
@@ -63,6 +63,19 @@ def create_deal(db: Session, deal: DealCreate, current_user_id: int):
         description=f"Deal '{db_deal.name}' was created at stage '{db_deal.stage}'.",
         deal_id=db_deal.id,
     )
+    # Auto-reminder: check deal progress in 2 days (safe)
+    try:
+        from app.services.reminder import create_reminder
+        create_reminder(
+            db,
+            title=f"Check deal progress: {db_deal.name}",
+            related_type="deal",
+            related_id=db_deal.id,
+            reminder_time=datetime.utcnow(),  # immediately due for demo
+            description=f"New deal created at stage '{db_deal.stage}'. Review and push forward!",
+        )
+    except Exception as e:
+        print(f"[REMINDER] Could not create deal reminder: {e}")
     return db_deal
 
 def update_deal(db: Session, deal_id: int, deal: DealUpdate, current_user_id: int):

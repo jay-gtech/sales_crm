@@ -1,0 +1,164 @@
+# CRM System -- End-to-End Test Report
+
+> **Generated:** 2026-03-27 10:30:55 UTC
+> **Test DB:** `test_run_1774607448.db` (isolated, deleted after run)
+> **Test user:** `test_1774607448@crm-test.internal` (deleted after run)
+> **Run ID:** `1774607448`
+
+---
+
+## Summary
+
+| Metric | Value |
+|---|---|
+| Total Tests | 53 |
+| Passed | 53 |
+| Warnings | 0 |
+| Failed | 0 |
+| Pass Rate | 100% |
+| Overall Stability | **STABLE -- All critical tests passed** |
+
+---
+
+## Results by Module
+
+### Auth  [PASS]  6/6 passed
+
+| Test Case | Result | Detail |
+|---|---|---|
+| GET /login renders | **PASS** | HTTP 200 |
+| GET /signup renders | **PASS** | HTTP 200 |
+| Register new test user | **PASS** | HTTP 200 |
+| Duplicate email rejected | **PASS** | HTTP 400 |
+| Wrong password rejected | **PASS** | HTTP 400 |
+| Login correct credentials | **PASS** | HTTP 200, cookie=yes |
+
+### Pages  [PASS]  8/8 passed
+
+| Test Case | Result | Detail |
+|---|---|---|
+| Dashboard (/) | **PASS** | HTTP 200 |
+| Leads (/leads) | **PASS** | HTTP 200 |
+| Deals (/deals) | **PASS** | HTTP 200 |
+| Activities (/activities) | **PASS** | HTTP 200 |
+| Contacts (/contacts) | **PASS** | HTTP 200 |
+| Reports (/dashboard) | **PASS** | HTTP 200 |
+| Help (/help) | **PASS** | HTTP 200 |
+| SOP (/sop) | **PASS** | HTTP 200 |
+
+### Leads  [PASS]  11/11 passed
+
+| Test Case | Result | Detail |
+|---|---|---|
+| Create lead (POST /leads) | **PASS** | HTTP 200 |
+| Lead persisted in DB | **PASS** | id=1 |
+| List page (GET /leads) | **PASS** | HTTP 200 |
+| Detail page (GET /leads/{id}) | **PASS** | HTTP 200 |
+| Update status (POST /leads/{id}/status) | **PASS** | HTTP 200 |
+| History endpoint returns list | **PASS** | HTTP 200, entries=1 |
+| Filter by status | **PASS** | HTTP 200 |
+| Filter by source | **PASS** | HTTP 200 |
+| Filter by search | **PASS** | HTTP 200 |
+| Kanban view | **PASS** | HTTP 200 |
+| Non-existent lead returns no 500 | **PASS** | HTTP 200 |
+
+### Deals  [PASS]  7/7 passed
+
+| Test Case | Result | Detail |
+|---|---|---|
+| List page (GET /deals) | **PASS** | HTTP 200 |
+| Convert lead to deal | **PASS** | HTTP 200 |
+| Deal in DB | **PASS** | id=1, stage=New, amount=9999.0 |
+| Contact auto-created from lead | **PASS** | id=1 |
+| Detail page (GET /deals/{id}) | **PASS** | HTTP 200 |
+| Update stage | **PASS** | HTTP 200 |
+| Non-existent deal returns no 500 | **PASS** | HTTP 404 |
+
+### Contacts  [PASS]  1/1 passed
+
+| Test Case | Result | Detail |
+|---|---|---|
+| List page (GET /contacts) | **PASS** | HTTP 200 |
+
+### Activities  [PASS]  7/7 passed
+
+| Test Case | Result | Detail |
+|---|---|---|
+| List page (GET /activities) | **PASS** | HTTP 200 |
+| Create activity (POST /activities) | **PASS** | HTTP 200 |
+| Activity in DB | **PASS** | id=4, type=Call, status=pending |
+| Filter by type | **PASS** | HTTP 200 |
+| Filter by status | **PASS** | HTTP 200 |
+| Mark complete | **PASS** | HTTP 200 |
+| Status updated to completed in DB | **PASS** | status=completed |
+
+### Reminders  [PASS]  6/6 passed
+
+| Test Case | Result | Detail |
+|---|---|---|
+| GET /api/reminders/due | **PASS** | HTTP 200, count=2 |
+| Create reminder (service) | **PASS** | id=3, status=pending |
+| Dismiss/snooze | **PASS** | HTTP 200 |
+| snooze_count incremented | **PASS** | snooze_count=1 |
+| Mark done | **PASS** | HTTP 200 |
+| Status set to done in DB | **PASS** | status=done |
+
+### Dashboard  [PASS]  2/2 passed
+
+| Test Case | Result | Detail |
+|---|---|---|
+| Main page loads (GET /) | **PASS** | HTTP 200 |
+| Reports page loads (GET /dashboard) | **PASS** | HTTP 200 |
+
+### Errors  [PASS]  4/4 passed
+
+| Test Case | Result | Detail |
+|---|---|---|
+| non-existent lead returns no 500 | **PASS** | HTTP 200 |
+| non-existent deal returns no 500 | **PASS** | HTTP 404 |
+| Status update missing body no 500 | **PASS** | HTTP 400 |
+| Unauthenticated redirects to /login | **PASS** | HTTP 307 |
+
+### Cleanup  [PASS]  1/1 passed
+
+| Test Case | Result | Detail |
+|---|---|---|
+| Remove test database file | **PASS** | test_run_1774607448.db |
+
+---
+
+## Isolation & Cleanup
+
+This test run used a **dedicated isolated SQLite database** (`test_run_{TS}.db`).
+The production `crm.db` was never accessed or modified.
+
+| Item | Action |
+|---|---|
+| Test database `test_run_1774607448.db` | Dropped and deleted |
+| Test user `test_1774607448@crm-test.internal` | Deleted |
+| Test leads (IDs: [1]) | Removed with DB |
+| Test deals (IDs: [1]) | Removed with DB |
+| Test contacts (IDs: [1]) | Removed with DB |
+| Test activities (IDs: [4]) | Removed with DB |
+| Test reminders (IDs: [3]) | Removed with DB |
+
+---
+
+## Module Stability Matrix
+
+| Module | Status |
+|---|---|
+| Auth | Stable |
+| Pages | Stable |
+| Leads | Stable |
+| Deals | Stable |
+| Contacts | Stable |
+| Activities | Stable |
+| Reminders | Stable |
+| Dashboard | Stable |
+| Errors | Stable |
+| Cleanup | Stable |
+
+---
+
+*Auto-generated by `run_tests.py` -- Run ID `1774607448`*

@@ -1,4 +1,5 @@
 from typing import List, Optional
+from datetime import timedelta
 from sqlalchemy.orm import Session
 from app.models.lead import Lead
 from app.models.lead_history import LeadHistory
@@ -48,6 +49,20 @@ def create_lead(db: Session, lead: LeadCreate):
         description=f"Lead {db_lead.first_name} {db_lead.last_name} was added to the CRM.",
         lead_id=db_lead.id,
     )
+    # Auto-reminder: follow up in 2 days (safe — never breaks lead creation)
+    try:
+        from app.services.reminder import create_reminder
+        from datetime import datetime
+        create_reminder(
+            db,
+            title=f"Follow up with {db_lead.first_name} {db_lead.last_name} (Lead)",
+            related_type="lead",
+            related_id=db_lead.id,
+            reminder_time=datetime.utcnow(),  # immediately due for demo
+            description=f"New lead from {db_lead.company or 'unknown company'}. Follow up!",
+        )
+    except Exception as e:
+        print(f"[REMINDER] Could not create lead reminder: {e}")
     return db_lead
 
 def update_lead_status(db: Session, lead_id: int, new_status: str, user_id: int, notes: Optional[str] = None):
@@ -82,6 +97,20 @@ def update_lead_status(db: Session, lead_id: int, new_status: str, user_id: int,
         description=f"Status updated from '{old_status}' → '{new_status}'." + (f" Notes: {notes}" if notes else ""),
         lead_id=lead_id,
     )
+    # Auto-reminder: next action after status change (safe)
+    try:
+        from app.services.reminder import create_reminder
+        from datetime import datetime
+        create_reminder(
+            db,
+            title=f"Next action for Lead #{lead_id} → {new_status}",
+            related_type="lead",
+            related_id=lead_id,
+            reminder_time=datetime.utcnow(),  # immediately due for demo
+            description=f"Lead status changed to '{new_status}'. Plan your next step.",
+        )
+    except Exception as e:
+        print(f"[REMINDER] Could not create status-change reminder: {e}")
     return lead
 
 def update_lead_score(db: Session, lead_id: int):

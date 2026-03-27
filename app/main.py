@@ -7,7 +7,7 @@ from fastapi.responses import RedirectResponse
 
 from app.core.config import settings
 import app.db.base  # noqa: F401 — registers ALL models with SQLAlchemy before any route imports them
-from app.api.routes import auth, leads, contacts, deals, activities, ai, public
+from app.api.routes import auth, leads, contacts, deals, activities, ai, public, reminders
 from app.api.endpoints import meeting, chatbot
 from app.api.deps import get_current_user
 
@@ -24,7 +24,7 @@ if settings.DEMO_MODE:
         duration_ms = int((time.time() - start) * 1000)
         print(
             f"[DEMO] {request.method} {request.url.path}"
-            f" → {response.status_code} ({duration_ms}ms)"
+            f" -> {response.status_code} ({duration_ms}ms)"
         )
         return response
 
@@ -136,6 +136,7 @@ app.include_router(ai.router)
 app.include_router(meeting.router)
 app.include_router(chatbot.router)
 app.include_router(public.router)
+app.include_router(reminders.router)
 
 from sqlalchemy.orm import Session
 from app.db.session import get_db
