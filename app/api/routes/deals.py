@@ -81,6 +81,12 @@ async def list_deals(
         }
     })
 
+@router.get("/deals/create")
+async def deals_create_redirect(_user=Depends(get_current_user)):
+    """Guard against direct navigation to /deals/create — was causing 422."""
+    return RedirectResponse(url="/deals", status_code=303)
+
+
 @router.post("/deals")
 async def create_deal(
     request: Request,
@@ -150,8 +156,8 @@ async def get_deal(
 ):
     deal = deal_service.get_deal(db, deal_id)
     if not deal:
-        raise HTTPException(status_code=404, detail="Deal not found")
-    
+        return RedirectResponse(url="/deals", status_code=303)
+
     # Fetch history
     from app.models.deal_history import DealHistory
     from app.models.email_log import EmailLog
@@ -188,7 +194,7 @@ async def edit_deal_form(
 ):
     deal = deal_service.get_deal(db, deal_id)
     if not deal:
-        raise HTTPException(status_code=404, detail="Deal not found")
+        return RedirectResponse(url="/deals", status_code=303)
     
     from app.services import contact as contact_service
     contacts = contact_service.get_contacts(db)
@@ -245,6 +251,6 @@ async def update_deal_route(
     
     updated_deal = deal_service.update_deal(db, deal_id, deal_update, user.id)
     if not updated_deal:
-        raise HTTPException(status_code=404, detail="Deal not found")
+        return RedirectResponse(url="/deals", status_code=303)
     
     return RedirectResponse(url=f"/deals/{deal_id}", status_code=status.HTTP_303_SEE_OTHER)

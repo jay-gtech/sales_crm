@@ -3,13 +3,14 @@ Action Handler — validates and executes structured CRM actions from the AI ass
 
 Supported actions:
   create_lead   — creates a Lead record
-  add_reminder  — creates a Reminder record
+  add_reminder  — creates a Reminder record (+ optional email notification)
   create_deal   — creates a Deal record (requires a contact; skipped gracefully if none exist)
 
 Every function returns:
   {"ok": True,  "message": str, "link": str | None}   on success
   {"ok": False, "message": str, "link": None}          on failure
 
+All handlers are async so ai_router can await execute_action safely.
 Never raises — all exceptions are caught and returned as ok=False.
 """
 import logging
@@ -19,6 +20,7 @@ from typing import Any, Dict
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
+
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -48,7 +50,7 @@ def _parse_time(value: Any) -> datetime:
 
 # ── action handlers ───────────────────────────────────────────────────────────
 
-def _handle_create_lead(params: Dict, db: Session, user) -> Dict:
+async def _handle_create_lead(params: Dict, db: Session, _user) -> Dict:
     try:
         from app.schemas.lead import LeadCreate
         from app.services.lead import create_lead as svc_create_lead
@@ -80,7 +82,7 @@ def _handle_create_lead(params: Dict, db: Session, user) -> Dict:
         return _fail("Could not create the lead. Please try again or add it manually.")
 
 
-def _handle_add_reminder(params: Dict, db: Session, user) -> Dict:
+async def _handle_add_reminder(params: Dict, db: Session, user) -> Dict:
     try:
         from app.services.reminder import create_reminder
 
@@ -96,23 +98,39 @@ def _handle_add_reminder(params: Dict, db: Session, user) -> Dict:
 
         description = params.get("description") or None
 
-        # related_type and related_id are required positional args — use "general" / 0
         create_reminder(
             db,
             title,
-            "general",      # related_type
-            0,              # related_id (no specific record)
+            "general",  # related_type
+            0,          # related_id (no specific record)
             reminder_time,
             description,
         )
         time_str = reminder_time.strftime("%b %d, %Y at %H:%M")
+
+        # ── Optional email notification — safe, never blocks action success ──
+        try:
+            if getattr(user, "email", None):
+                from app.services.email_service import send_email_async
+                subject = f"Reminder Set: {title}"
+                body = (
+                    f"Hello {getattr(user, 'display_name', user.email)},\n\n"
+                    f"A reminder has been set:\n\n"
+                    f"Title: {title}\n"
+                    f"Time:  {time_str}\n"
+                    f"Notes: {description or 'N/A'}"
+                )
+                await send_email_async(user.email, subject, body)
+        except Exception as email_exc:
+            logger.warning("[action] reminder email notification failed: %s", email_exc)
+
         return _ok(f"Reminder **\"{title}\"** set for {time_str}.")
     except Exception as exc:
         logger.error("[action] add_reminder failed: %s", exc)
         return _fail("Could not create the reminder. Please try again or add it manually.")
 
 
-def _handle_create_deal(params: Dict, db: Session, user) -> Dict:
+async def _handle_create_deal(params: Dict, db: Session, user) -> Dict:
     try:
         from app.models.contact import Contact
         from app.schemas.deal import DealCreate
@@ -154,24 +172,25 @@ _HANDLERS = {
 }
 
 
-def execute_action(action_data: Dict, db: Session, user) -> Dict:
+async def execute_action(action_data: Dict, db: Session, user) -> Dict:
     """
     Execute a validated action dict from llm_service.extract_action.
     Returns {"ok": bool, "message": str, "link": str | None}.
+    Async so ai_router can safely await it.
     Never raises.
     """
     if not action_data:
         return _fail("No action could be determined from your request.")
 
-    action = action_data.get("action")
-    params = action_data.get("params") or {}
+    action  = action_data.get("action")
+    params  = action_data.get("params") or {}
 
     handler = _HANDLERS.get(action)
     if handler is None:
         return _fail(f"Action \"{action}\" is not supported yet.")
 
     try:
-        return handler(params, db, user)
+        return await handler(params, db, user)
     except Exception as exc:
         logger.error("[action] unhandled error in %s: %s", action, exc)
         return _fail("Something went wrong while executing that action. Please try manually.")

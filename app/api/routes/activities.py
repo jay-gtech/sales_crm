@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, Form, status
+from fastapi import APIRouter, BackgroundTasks, Request, Depends, Form, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -11,6 +11,7 @@ from app.services import activity as activity_service
 from app.services import lead as lead_service
 from app.services import permission_service as perm
 from app.schemas.activity import ActivityCreate
+from app.services.email_service import send_email_async
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -70,6 +71,7 @@ async def list_activities(
 @router.post("/activities")
 async def create_activity(
     request: Request,
+    background_tasks: BackgroundTasks,
     title: str = Form(...),
     activity_type: str = Form("Task"),
     status_val: str = Form("pending"),
@@ -88,6 +90,19 @@ async def create_activity(
         deal_id=deal_id or None,
     )
     activity_service.create_activity(db, activity_in)
+
+    # ── Task email notification — fire-and-forget, never blocks the response ──
+    if activity_type == "Task" and getattr(user, "email", None):
+        subject = f"New Task Assigned: {title}"
+        body = (
+            f"Hello {getattr(user, 'display_name', user.email)},\n\n"
+            f"A new task has been logged:\n\n"
+            f"Title:       {title}\n"
+            f"Description: {description or 'N/A'}\n\n"
+            f"View all activities: {str(request.base_url)}activities"
+        )
+        background_tasks.add_task(send_email_async, user.email, subject, body)
+
     return RedirectResponse(url="/activities", status_code=status.HTTP_303_SEE_OTHER)
 
 
@@ -95,7 +110,7 @@ async def create_activity(
 async def complete_activity(
     activity_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    _user: User = Depends(get_current_user),
 ):
     activity_service.mark_complete(db, activity_id)
     return RedirectResponse(url="/activities", status_code=status.HTTP_303_SEE_OTHER)

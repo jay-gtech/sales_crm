@@ -37,9 +37,26 @@ def get_lead(db: Session, lead_id: int):
     return db.query(Lead).filter(Lead.id == lead_id).first()
 
 def create_lead(db: Session, lead: LeadCreate):
+    # Pre-check: reject duplicate email before hitting the DB constraint
+    if lead.email:
+        existing = db.query(Lead).filter(Lead.email == lead.email).first()
+        if existing:
+            import logging
+            logging.getLogger(__name__).warning(
+                "[lead] create blocked — email already exists: %s", lead.email
+            )
+            return None   # caller must check for None
+
     db_lead = Lead(**lead.dict())
     db.add(db_lead)
-    db.commit()
+    try:
+        db.commit()
+    except Exception as exc:
+        # Belt-and-suspenders: catches IntegrityError from a race condition
+        db.rollback()
+        import logging
+        logging.getLogger(__name__).error("[lead] create_lead commit failed: %s", exc)
+        return None
     db.refresh(db_lead)
     # Auto-activity: record that a new lead was created
     from app.services.activity import log_activity

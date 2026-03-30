@@ -28,6 +28,7 @@ async def list_leads(
     owner_id: int = None,
     sort_by: str = None,
     view: str = 'table',
+    error: Optional[str] = None,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user)
 ):
@@ -42,7 +43,8 @@ async def list_leads(
             "title": "Leads",
             "lead_sources": LEAD_SOURCES,
             "can_delete": perm.can_delete(user, "leads"),
-            "filters": {"search": search, "status": status_filter, "source": source_filter, "owner_id": owner_id, "sort_by": sort_by, "view": view}
+            "filters": {"search": search, "status": status_filter, "source": source_filter, "owner_id": owner_id, "sort_by": sort_by, "view": view},
+            "error": error,
         })
     except Exception as e:
         import traceback
@@ -50,6 +52,12 @@ async def list_leads(
         print("UNCAUGHT EXCEPTION IN /leads ROUTE:", file=sys.stderr)
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/leads/create")
+async def leads_create_redirect(_user=Depends(get_current_user)):
+    """Guard against direct navigation to /leads/create — was causing 422."""
+    return RedirectResponse(url="/leads", status_code=303)
+
 
 @router.post("/leads")
 async def create_lead(
@@ -71,7 +79,9 @@ async def create_lead(
         status=form_data.get("status", "New"),
         owner_id=user.id
     )
-    lead_service.create_lead(db, lead_in)
+    result = lead_service.create_lead(db, lead_in)
+    if result is None:
+        return RedirectResponse(url="/leads?error=email_exists", status_code=303)
     return RedirectResponse(url="/leads", status_code=303)
 
 @router.post("/leads/import")
@@ -97,8 +107,8 @@ async def import_leads(
             status=row.get('status') or row.get('Status', 'New'),
             owner_id=user.id
         )
-        lead_service.create_lead(db, lead_in)
-    
+        lead_service.create_lead(db, lead_in)  # returns None on duplicate — silently skipped
+
     return RedirectResponse(url="/leads", status_code=303)
 
 @router.get("/leads/{lead_id}", response_class=HTMLResponse)
