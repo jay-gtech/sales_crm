@@ -48,7 +48,7 @@ def _parse_time(value: Any) -> datetime:
 
 # ── action handlers ───────────────────────────────────────────────────────────
 
-def _handle_create_lead(params: Dict, db: Session, user) -> Dict:
+async def _handle_create_lead(params: Dict, db: Session, user) -> Dict:
     try:
         from app.schemas.lead import LeadCreate
         from app.services.lead import create_lead as svc_create_lead
@@ -80,9 +80,10 @@ def _handle_create_lead(params: Dict, db: Session, user) -> Dict:
         return _fail("Could not create the lead. Please try again or add it manually.")
 
 
-def _handle_add_reminder(params: Dict, db: Session, user) -> Dict:
+async def _handle_add_reminder(params: Dict, db: Session, user) -> Dict:
     try:
         from app.services.reminder import create_reminder
+        from app.services.email_service import send_email_async
 
         title = (params.get("title") or "Follow up").strip()[:100]
 
@@ -106,13 +107,23 @@ def _handle_add_reminder(params: Dict, db: Session, user) -> Dict:
             description,
         )
         time_str = reminder_time.strftime("%b %d, %Y at %H:%M")
+        
+        # ── Reminder Notification ──────────────────────────────────────────
+        if user.email:
+            subject = f"Reminder Set: {title}"
+            body = f"Hello {user.display_name},\n\nA reminder has been set for you:\n\nTitle: {title}\nTime: {time_str}\nDescription: {description or 'N/A'}"
+            # Trigger async email — we don't strictly need to await it for the UI response 
+            # but since we're in an async handler, we can.
+            import anyio
+            await send_email_async(user.email, subject, body)
+
         return _ok(f"Reminder **\"{title}\"** set for {time_str}.")
     except Exception as exc:
         logger.error("[action] add_reminder failed: %s", exc)
         return _fail("Could not create the reminder. Please try again or add it manually.")
 
 
-def _handle_create_deal(params: Dict, db: Session, user) -> Dict:
+async def _handle_create_deal(params: Dict, db: Session, user) -> Dict:
     try:
         from app.models.contact import Contact
         from app.schemas.deal import DealCreate
@@ -154,7 +165,7 @@ _HANDLERS = {
 }
 
 
-def execute_action(action_data: Dict, db: Session, user) -> Dict:
+async def execute_action(action_data: Dict, db: Session, user) -> Dict:
     """
     Execute a validated action dict from llm_service.extract_action.
     Returns {"ok": bool, "message": str, "link": str | None}.
@@ -171,7 +182,7 @@ def execute_action(action_data: Dict, db: Session, user) -> Dict:
         return _fail(f"Action \"{action}\" is not supported yet.")
 
     try:
-        return handler(params, db, user)
+        return await handler(params, db, user)
     except Exception as exc:
         logger.error("[action] unhandled error in %s: %s", action, exc)
         return _fail("Something went wrong while executing that action. Please try manually.")

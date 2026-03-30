@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 _CLEAR_PHRASES = {"clear", "clear chat", "reset", "start over", "forget", "new conversation"}
 
 
-def route_query(query: str, db: Session, user: Any) -> Dict:
+async def route_query(query: str, db: Session, user: Any) -> Dict:
     """
     Main entry point called by the API endpoint.
     Classifies the query and delegates to the appropriate handler.
@@ -67,7 +67,7 @@ def route_query(query: str, db: Session, user: Any) -> Dict:
         # ── CRM actions (create / update) ──────────────────────────────────
         if intent == "action_query":
             action_data = extract_action(query)
-            result      = execute_action(action_data, db, user)
+            result      = await execute_action(action_data, db, user)
 
             # Build reply text and store in memory
             reply_text = result["message"]

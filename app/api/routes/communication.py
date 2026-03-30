@@ -148,3 +148,23 @@ def send_email_endpoint(
         detail="Email sent successfully." if ok else "Email could not be delivered. Check SMTP configuration.",
         log_id=log_id,
     )
+@router.post("/test-email", response_model=SendEmailResponse)
+async def test_email_endpoint(
+    user=Depends(get_current_user),
+):
+    """
+    Simple endpoint to send a test email to the logged-in user.
+    Uses async sending.
+    """
+    from app.services.email_service import send_email_async
+    
+    subject = "CRM Email Test"
+    body = f"Hello {user.email},\n\nThis is a test email from your CRM Platform to verify SMTP configuration.\n\nRegards,\nThe CRM Team"
+    html_body = f"<h3>Hello {user.email}</h3><p>This is a <b>test email</b> from your CRM Platform to verify SMTP configuration.</p><p>Regards,<br>The CRM Team</p>"
+    
+    ok = await send_email_async(to=user.email, subject=subject, message=body, html_message=html_body)
+    
+    return SendEmailResponse(
+        ok=ok,
+        detail="Test email sent successfully." if ok else "Test email failed. Check SMTP configuration and logs.",
+    )

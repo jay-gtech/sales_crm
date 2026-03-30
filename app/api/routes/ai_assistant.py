@@ -18,7 +18,7 @@ class AssistantRequest(BaseModel):
 
 
 @router.post("")
-def query_assistant(
+async def query_assistant(
     body: AssistantRequest,
     db: Session = Depends(get_db),
     user=Depends(get_current_user),
@@ -28,7 +28,7 @@ def query_assistant(
     Returns: { message, items, links, type }
     Never raises on data errors — returns a friendly fallback instead.
     """
-    return route_query(body.message, db, user)
+    return await route_query(body.message, db, user)
 
 
 @router.get("/ping")

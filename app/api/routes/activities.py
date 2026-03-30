@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, Form, status
+from fastapi import APIRouter, Request, Depends, Form, status, BackgroundTasks
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -11,6 +11,7 @@ from app.services import activity as activity_service
 from app.services import lead as lead_service
 from app.services import permission_service as perm
 from app.schemas.activity import ActivityCreate
+from app.services.email_service import send_email_async
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -70,6 +71,7 @@ async def list_activities(
 @router.post("/activities")
 async def create_activity(
     request: Request,
+    background_tasks: BackgroundTasks,
     title: str = Form(...),
     activity_type: str = Form("Task"),
     status_val: str = Form("pending"),
@@ -88,6 +90,13 @@ async def create_activity(
         deal_id=deal_id or None,
     )
     activity_service.create_activity(db, activity_in)
+    
+    # ── Task Notification ───────────────────────────────────────────────────
+    if activity_type == "Task" and user.email:
+        subject = f"New Task Assigned: {title}"
+        body = f"Hello {user.display_name},\n\nA new task has been assigned to you:\n\nTitle: {title}\nDescription: {description}\n\nLink: {str(request.base_url)}activities"
+        background_tasks.add_task(send_email_async, user.email, subject, body)
+    
     return RedirectResponse(url="/activities", status_code=status.HTTP_303_SEE_OTHER)
 
 
