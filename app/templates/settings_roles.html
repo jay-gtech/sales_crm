@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block header_title %}User & Role Management{% endblock %}
+
+{% block header_actions %}
+<a href="/settings"
+   class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-50 transition-all">
+    ← Settings
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="p-6 bg-slate-50 min-h-screen">
+    <div class="max-w-5xl flex gap-6">
+
+        <!-- Settings Sidebar -->
+        <aside class="w-52 flex-shrink-0">
+            <nav class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-4 py-3 border-b border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Settings</p>
+                </div>
+                <a href="/settings"
+                   class="flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors border-l-2 border-transparent">
+                    <i class="fas fa-user w-4 text-center"></i> Profile
+                </a>
+                <a href="/settings/preferences"
+                   class="flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors border-l-2 border-transparent">
+                    <i class="fas fa-sliders-h w-4 text-center"></i> Preferences
+                </a>
+                <a href="/settings/roles"
+                   class="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold bg-blue-50 text-blue-700 border-l-2 border-blue-500">
+                    <i class="fas fa-users-cog w-4 text-center"></i> User & Roles
+                </a>
+            </nav>
+
+            <!-- Role legend -->
+            <div class="mt-4 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-4 py-3 border-b border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Roles</p>
+                </div>
+                <div class="px-4 py-3 space-y-3">
+                    <div>
+                        <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 text-violet-700 uppercase">Admin</span>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Full system access, manages roles</p>
+                    </div>
+                    <div>
+                        <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase">Manager</span>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Oversees team, view-only on settings</p>
+                    </div>
+                    <div>
+                        <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 uppercase">Sales Rep</span>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Standard CRM access</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <div class="flex-1 space-y-5">
+
+            {% if updated %}
+            <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-medium rounded-xl px-4 py-3">
+                <i class="fas fa-check-circle text-emerald-500"></i> Role updated successfully.
+            </div>
+            {% endif %}
+
+            {% if error %}
+            <div class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 text-sm font-medium rounded-xl px-4 py-3">
+                <i class="fas fa-exclamation-circle text-red-500"></i> {{ error }}
+            </div>
+            {% endif %}
+
+            <!-- Users table -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-100">
+                    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-widest">Team Members</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ users | length }} user{{ 's' if users | length != 1 }}</p>
+                </div>
+
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-100">
+                            <th class="text-left px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">User</th>
+                            <th class="text-left px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Current Role</th>
+                            <th class="text-left px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reports To</th>
+                            <th class="text-left px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for u in users %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <!-- User info -->
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0
+                                        {% if u.role == 'admin' %}bg-violet-600
+                                        {% elif u.role == 'manager' %}bg-blue-600
+                                        {% else %}bg-slate-500{% endif %}">
+                                        {{ (u.display_name or u.email)[0] | upper }}
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-slate-800">
+                                            {{ u.display_name }}
+                                            {% if u.id == user.id %}<span class="text-[10px] text-slate-400 font-normal">(you)</span>{% endif %}
+                                        </p>
+                                        <p class="text-xs text-slate-400">{{ u.email }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <!-- Role badge -->
+                            <td class="px-6 py-4">
+                                <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
+                                    {% if u.role == 'admin' %}bg-violet-100 text-violet-700
+                                    {% elif u.role == 'manager' %}bg-blue-100 text-blue-700
+                                    {% else %}bg-slate-100 text-slate-600{% endif %}">
+                                    {{ u.role_label }}
+                                </span>
+                            </td>
+                            <!-- Manager -->
+                            <td class="px-6 py-4 text-slate-500 text-xs">
+                                {% if u.manager %}{{ u.manager.display_name }}{% else %}<span class="text-slate-300">—</span>{% endif %}
+                            </td>
+                            <!-- Edit trigger — uses data attributes to avoid inline string escaping issues -->
+                            <td class="px-6 py-4">
+                                <button
+                                    type="button"
+                                    class="edit-role-btn text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors px-3 py-1.5 rounded-lg hover:bg-blue-50"
+                                    data-uid="{{ u.id }}"
+                                    data-name="{{ u.display_name | e }}"
+                                    data-role="{{ u.role }}"
+                                    data-manager="{{ u.manager_id if u.manager_id else '' }}">
+                                    Edit Role
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% if not users %}
+                <div class="py-12 text-center">
+                    <p class="text-slate-400 text-sm italic">No users found.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ── Edit Role Modal ─────────────────────────────────────────────────────────
+     NOTE: visibility is toggled via style.display (not Tailwind hidden/flex)
+     to avoid the Tailwind CDN cascade-order issue where flex overrides hidden.
+──────────────────────────────────────────────────────────────────────────── -->
+<div id="edit-modal"
+     style="display:none; position:fixed; inset:0; z-index:9990;
+            align-items:center; justify-content:center; padding:1rem;
+            background:rgba(0,0,0,0.45);">
+
+    <div style="position:relative; background:#fff; border-radius:1rem;
+                border:1px solid #e2e8f0; box-shadow:0 20px 60px rgba(0,0,0,0.15);
+                width:100%; max-width:28rem;">
+
+        <!-- Header -->
+        <div style="display:flex; align-items:center; justify-content:space-between;
+                    padding:1rem 1.5rem; border-bottom:1px solid #f1f5f9;">
+            <h3 style="font-size:0.75rem; font-weight:700; color:#1e293b;
+                        text-transform:uppercase; letter-spacing:0.1em;">
+                Edit Role
+            </h3>
+            <button type="button" id="modal-close-btn"
+                    style="color:#94a3b8; background:none; border:none; cursor:pointer; font-size:1rem;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Form -->
+        <form id="role-assign-form" action="/settings/roles/assign" method="POST">
+            <input type="hidden" name="user_id" id="modal-user-id">
+
+            <div style="padding:1.25rem 1.5rem; display:flex; flex-direction:column; gap:1rem;">
+
+                <!-- Context line -->
+                <p style="font-size:0.875rem; color:#64748b;">
+                    Editing role for
+                    <strong id="modal-user-name" style="color:#1e293b;"></strong>
+                </p>
+
+                <!-- Role selector -->
+                <div>
+                    <label style="display:block; font-size:0.65rem; font-weight:700;
+                                  color:#94a3b8; text-transform:uppercase;
+                                  letter-spacing:0.08em; margin-bottom:0.375rem;">
+                        Role
+                    </label>
+                    <select name="role" id="modal-role"
+                            style="width:100%; background:#f8fafc; border:1px solid #e2e8f0;
+                                   border-radius:0.75rem; padding:0.625rem 1rem;
+                                   font-size:0.875rem; color:#1e293b; outline:none;">
+                        {% for r in roles %}
+                        <option value="{{ r }}">{{ role_labels[r] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Manager selector -->
+                <div>
+                    <label style="display:block; font-size:0.65rem; font-weight:700;
+                                  color:#94a3b8; text-transform:uppercase;
+                                  letter-spacing:0.08em; margin-bottom:0.375rem;">
+                        Reports To (optional)
+                    </label>
+                    <select name="manager_id" id="modal-manager"
+                            style="width:100%; background:#f8fafc; border:1px solid #e2e8f0;
+                                   border-radius:0.75rem; padding:0.625rem 1rem;
+                                   font-size:0.875rem; color:#1e293b; outline:none;">
+                        <option value="">— No manager —</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}" data-uid="{{ u.id }}">{{ u.display_name | e }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div style="padding:1rem 1.5rem; border-top:1px solid #f1f5f9;
+                        display:flex; justify-content:flex-end; gap:0.75rem;">
+                <button type="button" id="modal-cancel-btn"
+                        style="padding:0.5rem 1rem; font-size:0.75rem; font-weight:700;
+                               color:#475569; background:#fff; border:1px solid #e2e8f0;
+                               border-radius:0.75rem; cursor:pointer;">
+                    Cancel
+                </button>
+                <button type="submit"
+                        style="padding:0.5rem 1.25rem; font-size:0.75rem; font-weight:700;
+                               color:#fff; background:#2563eb; border:none;
+                               border-radius:0.75rem; cursor:pointer;">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var modal      = document.getElementById('edit-modal');
+    var formUserId = document.getElementById('modal-user-id');
+    var formRole   = document.getElementById('modal-role');
+    var formMgr    = document.getElementById('modal-manager');
+    var nameSpan   = document.getElementById('modal-user-name');
+
+    // ── Open ─────────────────────────────────────────────────────────────────
+    document.querySelectorAll('.edit-role-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var uid        = btn.dataset.uid;
+            var name       = btn.dataset.name;
+            var role       = btn.dataset.role;
+            var managerId  = btn.dataset.manager;   // "" if none
+
+            // Populate hidden field and labels
+            formUserId.value       = uid;
+            nameSpan.textContent   = name;
+
+            // Set role dropdown
+            formRole.value = role;
+            if (!formRole.value) formRole.selectedIndex = 0;  // fallback
+
+            // Build manager dropdown: hide the user being edited from options
+            Array.from(formMgr.options).forEach(function (opt) {
+                opt.hidden = (opt.value !== '' && opt.dataset.uid === uid);
+            });
+            formMgr.value = managerId || '';
+
+            // Show modal
+            modal.style.display = 'flex';
+        });
+    });
+
+    // ── Close ─────────────────────────────────────────────────────────────────
+    function closeModal() {
+        modal.style.display = 'none';
+        // Un-hide all manager options for next open
+        Array.from(formMgr.options).forEach(function (opt) { opt.hidden = false; });
+    }
+
+    document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+    document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+
+    // Close on backdrop click (the modal overlay itself, not the card)
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+
+    // ── Keyboard: Escape to close ─────────────────────────────────────────────
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.style.display !== 'none') closeModal();
+    });
+
+}());
+</script>
+{% endblock %}

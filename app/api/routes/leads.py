@@ -10,6 +10,7 @@ from app.db.session import get_db
 from app.models.user import User
 from app.api.deps import get_current_user
 from app.services import lead as lead_service
+from app.services import permission_service as perm
 from app.schemas.lead import LeadCreate
 from app.db import base as base_models # noqa
 
@@ -32,12 +33,15 @@ async def list_leads(
 ):
     try:
         leads = lead_service.get_leads(db, search=search, status=status_filter, owner_id=owner_id, sort_by=sort_by, source=source_filter)
+        # RBAC: filter to records this user may see (fail-safe — returns all on error)
+        leads = perm.filter_by_visibility(leads, user, db, owner_attr="owner_id")
         return templates.TemplateResponse("leads.html", {
             "request": request,
             "leads": leads,
             "user": user,
             "title": "Leads",
             "lead_sources": LEAD_SOURCES,
+            "can_delete": perm.can_delete(user, "leads"),
             "filters": {"search": search, "status": status_filter, "source": source_filter, "owner_id": owner_id, "sort_by": sort_by, "view": view}
         })
     except Exception as e:
@@ -108,10 +112,18 @@ async def get_lead_detail(
     if not lead:
         return RedirectResponse(url="/leads")
     from app.services.activity import get_activities_by_lead
+    from app.models.email_log import EmailLog
     lead_activities = get_activities_by_lead(db, lead_id)
+    email_logs = (
+        db.query(EmailLog)
+        .filter(EmailLog.related_type == "lead", EmailLog.related_id == lead_id)
+        .order_by(EmailLog.created_at.desc())
+        .all()
+    )
     return templates.TemplateResponse("lead_detail.html", {
         "request": request, "lead": lead, "user": user,
         "lead_activities": lead_activities,
+        "email_logs": email_logs,
         "title": f"Lead: {lead.first_name}"
     })
 
@@ -139,6 +151,9 @@ async def delete_lead(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user)
 ):
+    # RBAC: only admins may delete leads
+    if not perm.can_delete(user, "leads"):
+        return RedirectResponse(url="/leads", status_code=status.HTTP_303_SEE_OTHER)
     lead_service.delete_lead(db, lead_id)
     return RedirectResponse(url="/leads", status_code=status.HTTP_303_SEE_OTHER)
 

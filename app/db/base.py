@@ -9,3 +9,4 @@ from app.models.activity import Activity  # noqa
 from app.models.meeting import Meeting, MeetingInsight  # noqa
 from app.models.workflow import Workflow, WorkflowRule  # noqa
 from app.models.reminder import Reminder  # noqa
+from app.models.email_log import EmailLog  # noqa

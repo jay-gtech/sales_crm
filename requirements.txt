@@ -29,3 +29,9 @@ anyio==4.12.1
 # Install twilio only if WhatsApp sending is needed.
 # pip install twilio
 # twilio>=8.0.0
+
+# ── AI / LLM (optional) ───────────────────────────────────────────────────
+# Install anthropic to enable real LLM responses in the Zia assistant.
+# Without it, Zia falls back to keyword-only responses — fully functional.
+# pip install anthropic
+# anthropic>=0.25.0

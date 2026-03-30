@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block header_title %}Preferences{% endblock %}
+
+{% block header_actions %}
+{% if user.role == 'admin' %}
+<a href="/settings/roles"
+   class="flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-50 transition-colors shadow-sm">
+    <i class="fas fa-users-cog text-slate-400"></i> User & Roles
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="p-6 bg-slate-50 min-h-screen">
+    <div class="max-w-4xl flex gap-6">
+
+        <!-- Settings Sidebar -->
+        <aside class="w-52 flex-shrink-0">
+            <nav class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-4 py-3 border-b border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Settings</p>
+                </div>
+                <a href="/settings"
+                   class="flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors border-l-2 border-transparent">
+                    <i class="fas fa-user w-4 text-center"></i> Profile
+                </a>
+                <a href="/settings/preferences"
+                   class="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold bg-blue-50 text-blue-700 border-l-2 border-blue-500">
+                    <i class="fas fa-sliders-h w-4 text-center"></i> Preferences
+                </a>
+                {% if user.role == 'admin' %}
+                <a href="/settings/roles"
+                   class="flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors border-l-2 border-transparent">
+                    <i class="fas fa-users-cog w-4 text-center"></i> User & Roles
+                </a>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <!-- Main content -->
+        <div class="flex-1 space-y-6">
+
+            <!-- Notification preferences -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+                <div class="px-6 py-5 border-b border-slate-100">
+                    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-widest">Notifications</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Control when and how you get notified.</p>
+                </div>
+                <div class="px-6 py-5 space-y-4">
+                    {% for label, desc in [
+                        ('Email reminders',    'Receive reminder alerts to your email address'),
+                        ('Lead updates',       'Notify when a lead status changes'),
+                        ('Deal stage changes', 'Notify when a deal moves to a new stage'),
+                        ('Activity due soon',  'Alert 30 minutes before a scheduled activity'),
+                    ] %}
+                    <label class="flex items-center justify-between py-2 cursor-pointer group">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-700 group-hover:text-slate-900">{{ label }}</p>
+                            <p class="text-xs text-slate-400 mt-0.5">{{ desc }}</p>
+                        </div>
+                        <!-- Toggle (visual only — saved state not yet persisted) -->
+                        <div class="relative ml-6 flex-shrink-0">
+                            <input type="checkbox" class="sr-only peer" checked>
+                            <div class="w-10 h-5 bg-slate-200 peer-checked:bg-blue-600 rounded-full transition-colors"></div>
+                            <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Display preferences -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+                <div class="px-6 py-5 border-b border-slate-100">
+                    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-widest">Display</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Adjust how the CRM presents information.</p>
+                </div>
+                <div class="px-6 py-5 space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Default Pipeline View</label>
+                        <select class="w-full max-w-xs bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                            <option>List View</option>
+                            <option>Kanban / Pipeline</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Records Per Page</label>
+                        <select class="w-full max-w-xs bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                            <option>10</option>
+                            <option selected>25</option>
+                            <option>50</option>
+                            <option>100</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coming soon notice -->
+            <div class="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl px-5 py-4">
+                <i class="fas fa-info-circle text-blue-400 mt-0.5 flex-shrink-0"></i>
+                <div>
+                    <p class="text-sm font-semibold text-blue-800">Preferences persistence coming soon</p>
+                    <p class="text-xs text-blue-600 mt-0.5">These settings are display-only in the current version. Full save support will be added in the next release.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

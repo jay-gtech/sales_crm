@@ -8,6 +8,7 @@ from app.db.session import get_db
 from app.models.user import User
 from app.api.deps import get_current_user
 from app.services import deal as deal_service
+from app.services import permission_service as perm
 from app.schemas.deal import DealCreate, DealUpdate
 
 router = APIRouter()
@@ -29,10 +30,13 @@ async def list_deals(
 ):
     skip = (page - 1) * limit
     deals, total_count = deal_service.get_deals(
-        db, skip=skip, limit=limit if view_type == "list" else 1000, 
+        db, skip=skip, limit=limit if view_type == "list" else 1000,
         stage=stage, owner_id=owner_id, search=search,
         sort_by=sort_by, order=order
     )
+    # RBAC: filter to records this user may see (fail-safe — returns all on error)
+    deals = perm.filter_by_visibility(deals, user, db, owner_attr="owner_id")
+    total_count = len(deals)
     stats = deal_service.get_pipeline_stats(db)
     
     # Organize deals by stage for Pipeline view
@@ -55,10 +59,10 @@ async def list_deals(
     owners = db.query(User).all()
 
     return templates.TemplateResponse("deals.html", {
-        "request": request, 
+        "request": request,
         "deals": deals,
-        "pipeline": pipeline, 
-        "user": user, 
+        "pipeline": pipeline,
+        "user": user,
         "stats": stats,
         "contacts": contacts,
         "owners": owners,
@@ -67,12 +71,13 @@ async def list_deals(
         "limit": limit,
         "view_type": view_type,
         "title": "Deals",
+        "can_delete": perm.can_delete(user, "deals"),
         "current_filters": {
-            "stage": stage, 
-            "owner_id": owner_id, 
+            "stage": stage,
+            "owner_id": owner_id,
             "search": search,
             "sort_by": sort_by,
-            "order": order
+            "order": order,
         }
     })
 
@@ -149,17 +154,27 @@ async def get_deal(
     
     # Fetch history
     from app.models.deal_history import DealHistory
+    from app.models.email_log import EmailLog
     history = db.query(DealHistory).filter(DealHistory.deal_id == deal_id).order_by(DealHistory.changed_at.desc()).all()
-    
+
     # Fetch activities
     from app.services import activity as activity_service
     activities = activity_service.get_activities_by_deal(db, deal_id)
-    
+
+    # Fetch email logs
+    email_logs = (
+        db.query(EmailLog)
+        .filter(EmailLog.related_type == "deal", EmailLog.related_id == deal_id)
+        .order_by(EmailLog.created_at.desc())
+        .all()
+    )
+
     return templates.TemplateResponse("deal_detail.html", {
         "request": request,
         "deal": deal,
         "history": history,
         "activities": activities,
+        "email_logs": email_logs,
         "user": user,
         "title": f"Deal: {deal.name}"
     })

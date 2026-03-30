@@ -9,6 +9,7 @@ from app.models.user import User
 from app.api.deps import get_current_user
 from app.services import activity as activity_service
 from app.services import lead as lead_service
+from app.services import permission_service as perm
 from app.schemas.activity import ActivityCreate
 
 router = APIRouter()
@@ -31,10 +32,28 @@ async def list_activities(
         query = query.filter(Activity.status == filter_status)
     activities = query.order_by(Activity.created_at.desc()).limit(100).all()
 
+    # RBAC: Activity has no owner_id — filter via linked lead/deal ownership.
+    # Unlinked activities (no lead, no deal) are visible to everyone.
+    # Fails open (shows all) on any error.
+    try:
+        visible_ids = perm.get_visible_owner_ids(user, db)
+        if visible_ids is not None:          # None means admin / show all
+            activities = [
+                a for a in activities
+                if (a.lead  and a.lead.owner_id  in visible_ids)
+                or (a.deal  and a.deal.owner_id  in visible_ids)
+                or (not a.lead and not a.deal)   # unlinked — always visible
+            ]
+    except Exception:
+        pass  # fail open — keep original list
+
     leads = lead_service.get_leads(db)
+    # Restrict lead dropdown in create-form to what this user can see
+    leads = perm.filter_by_visibility(leads, user, db, owner_attr="owner_id")
 
     from app.models.deal import Deal
     deals = db.query(Deal).order_by(Deal.created_at.desc()).all()
+    deals = perm.filter_by_visibility(deals, user, db, owner_attr="owner_id")
 
     return templates.TemplateResponse("activities.html", {
         "request": request,

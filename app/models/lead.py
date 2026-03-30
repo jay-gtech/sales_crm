@@ -10,7 +10,7 @@ class Lead(Base):
     first_name = Column(String, index=True)
     last_name = Column(String, index=True)
     email = Column(String, unique=True, index=True)
-    phone = Column(String, unique=True, index=True)
+    phone = Column(String, index=True)
     company = Column(String)
     status = Column(String, default="New") # New, Contacted, Qualified, Lost, Converted
     

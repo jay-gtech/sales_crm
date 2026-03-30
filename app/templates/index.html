@@ -1,102 +1,142 @@
 {% extends "base.html" %}
 
+{% block header_title %}Dashboard{% endblock %}
+
+{% block header_actions %}
+<a href="/dashboard" class="flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-50 transition-colors shadow-sm">
+    <i class="fas fa-chart-bar text-blue-400"></i> View Reports
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="p-8">
-    <div class="flex justify-between items-center mb-6">
-    <h2 class="text-2xl font-bold text-gray-800">Dashboard</h2>
-</div>
+<div class="p-6 bg-slate-50 min-h-screen">
 
-<!-- Quick Actions Section -->
-<div class="mb-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-    <a href="/leads" class="flex items-center justify-center p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 font-semibold hover:bg-blue-100 transition">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-        Add Lead
-    </a>
-    <a href="/activities" class="flex items-center justify-center p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 font-semibold hover:bg-green-100 transition">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-        Log Activity
-    </a>
-    <button onclick="document.body.scrollTop = document.getElementById('meeting-form').offsetTop; document.documentElement.scrollTop = document.getElementById('meeting-form').offsetTop;" class="flex items-center justify-center p-4 bg-purple-50 border border-purple-200 rounded-lg text-purple-700 font-semibold hover:bg-purple-100 transition">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-        AI meeting
-    </button>
-</div>
+    <!-- Quick Actions -->
+    <div class="mb-6 grid grid-cols-3 gap-4">
+        <a href="/leads" class="flex items-center justify-center gap-2 p-4 bg-white border border-slate-200 rounded-xl text-blue-700 font-semibold hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Add Lead
+        </a>
+        <a href="/activities" class="flex items-center justify-center gap-2 p-4 bg-white border border-slate-200 rounded-xl text-emerald-700 font-semibold hover:bg-emerald-50 hover:border-emerald-200 transition-all shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            Log Activity
+        </a>
+        <button onclick="document.getElementById('meeting-form').scrollIntoView({behavior:'smooth'})" class="flex items-center justify-center gap-2 p-4 bg-white border border-slate-200 rounded-xl text-purple-700 font-semibold hover:bg-purple-50 hover:border-purple-200 transition-all shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+            AI Meeting
+        </button>
+    </div>
 
-<div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-    <!-- Summary Cards -->
-    <div class="bg-white rounded-lg shadow-md p-6 border-b-4 border-blue-500">
-        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Total Leads</h3>
-        <p class="text-3xl font-bold text-gray-800 mt-2">{{ data.total_leads }}</p>
-    </div>
-    <div class="bg-white rounded-lg shadow-md p-6 border-b-4 border-green-500">
-        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Active Deals</h3>
-        <p class="text-3xl font-bold text-gray-800 mt-2">{{ data.active_deals }}</p>
-    </div>
-    <div class="bg-white rounded-lg shadow-md p-6 border-b-4 border-emerald-500">
-        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Won Deals</h3>
-        <p class="text-3xl font-bold text-gray-800 mt-2">{{ data.won_deals }}</p>
-    </div>
-    <div class="bg-white rounded-lg shadow-md p-6 border-b-4 border-red-500">
-        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Tasks</h3>
-        <p class="text-3xl font-bold text-gray-800 mt-2">{{ data.tasks_count }}</p>
-    </div>
-    <div class="bg-white rounded-lg shadow-md p-6 border-b-4 border-purple-500">
-        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Meetings</h3>
-        <p class="text-3xl font-bold text-gray-800 mt-2">{{ data.meetings_count }}</p>
-    </div>
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-    <!-- Recent Activities -->
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b">Recent Activities</h3>
-        <div class="space-y-4">
-            {% for activity in data.recent_activities %}
-            <div class="flex items-start">
-                <div class="bg-gray-100 p-2 rounded mr-3">
-                    {% if activity.activity_type == 'Call' %}📞{% elif activity.activity_type == 'Email' %}📧{% else %}✅{% endif %}
-                </div>
-                <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-900">{{ activity.description }}</p>
-                    <p class="text-xs text-gray-500">{{ activity.created_at.strftime('%m/%d %H:%M') if activity.created_at else '' }}</p>
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Leads</p>
+                <div class="w-7 h-7 bg-blue-50 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-users text-blue-500 text-xs"></i>
                 </div>
             </div>
-            {% else %}
-            <p class="text-gray-500 text-sm">No recent activities.</p>
-            {% endfor %}
+            <p class="text-3xl font-bold text-slate-800">{{ data.total_leads }}</p>
+            <p class="text-[11px] text-slate-400 mt-1">All time</p>
         </div>
-        <a href="/activities" class="block text-center mt-6 text-sm text-blue-600 font-semibold hover:underline">View All Activities</a>
-    </div>
-
-    <!-- Recent Meetings -->
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b">Recent Meetings (AI-Processed)</h3>
-        <div class="space-y-4">
-            {% for meeting in data.recent_meetings %}
-            <div class="border-l-4 border-purple-200 pl-4 py-1">
-                <p class="text-sm font-bold text-gray-900">{{ meeting.title }}</p>
-                <p class="text-xs text-gray-600 truncate mb-1 italic">"{{ (meeting.transcript or '')[:100] }}..."</p>
-                <p class="text-xs text-gray-400">{{ meeting.created_at.strftime('%m/%d %H:%M') if meeting.created_at else '' }}</p>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Deals</p>
+                <div class="w-7 h-7 bg-green-50 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-handshake text-green-500 text-xs"></i>
+                </div>
             </div>
-            {% else %}
-            <p class="text-gray-500 text-sm">No recent meetings.</p>
-            {% endfor %}
+            <p class="text-3xl font-bold text-slate-800">{{ data.active_deals }}</p>
+            <p class="text-[11px] text-slate-400 mt-1">In pipeline</p>
         </div>
-        <a href="/activities" class="block text-center mt-6 text-sm text-purple-600 font-semibold hover:underline">Check Activity Feed</a>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Won Deals</p>
+                <div class="w-7 h-7 bg-emerald-50 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-trophy text-emerald-500 text-xs"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-emerald-600">{{ data.won_deals }}</p>
+            <p class="text-[11px] text-slate-400 mt-1">Closed won</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pending Tasks</p>
+                <div class="w-7 h-7 bg-amber-50 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-tasks text-amber-500 text-xs"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-slate-800">{{ data.tasks_count }}</p>
+            <p class="text-[11px] text-slate-400 mt-1">Activities</p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Meetings</p>
+                <div class="w-7 h-7 bg-purple-50 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-video text-purple-500 text-xs"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-slate-800">{{ data.meetings_count }}</p>
+            <p class="text-[11px] text-slate-400 mt-1">AI-processed</p>
+        </div>
     </div>
-</div>
 
-<!-- Go-Live Readiness / System Status -->
-<div class="mb-8 bg-white rounded-lg shadow-md p-6 border border-gray-100">
-    <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-bold text-gray-800 flex items-center">
-            <span class="w-2.5 h-2.5 bg-green-500 rounded-full mr-3 animate-pulse"></span>
-            System Status
-        </h3>
-        <span class="text-xs font-bold text-green-600 bg-green-50 border border-green-100 px-3 py-1 rounded-full uppercase tracking-widest">
-            Go-Live Ready
-        </span>
+    <!-- Recent Activity + Meetings -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Recent Activities -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-widest mb-5 flex items-center">
+                <i class="fas fa-clock mr-2 text-blue-400"></i>Recent Activities
+            </h3>
+            <div class="space-y-4">
+                {% for activity in data.recent_activities %}
+                <div class="flex items-start gap-3">
+                    <div class="bg-slate-100 p-2 rounded-lg flex-shrink-0 text-base leading-none">
+                        {% if activity.activity_type == 'Call' %}📞{% elif activity.activity_type == 'Email' %}📧{% else %}✅{% endif %}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-slate-800 truncate">{{ activity.description }}</p>
+                        <p class="text-xs text-slate-400 mt-0.5">{{ activity.created_at.strftime('%m/%d %H:%M') if activity.created_at else '' }}</p>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-slate-400 text-sm italic text-center py-6">No recent activities.</p>
+                {% endfor %}
+            </div>
+            <a href="/activities" class="block text-center mt-5 text-xs font-bold text-blue-600 hover:text-blue-700 uppercase tracking-widest">View All Activities →</a>
+        </div>
+
+        <!-- Recent Meetings -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-widest mb-5 flex items-center">
+                <i class="fas fa-robot mr-2 text-purple-400"></i>Recent Meetings
+            </h3>
+            <div class="space-y-4">
+                {% for meeting in data.recent_meetings %}
+                <div class="border-l-4 border-purple-200 pl-4 py-1 rounded-r-lg">
+                    <p class="text-sm font-bold text-slate-800">{{ meeting.title }}</p>
+                    <p class="text-xs text-slate-500 truncate mb-1 italic">"{{ (meeting.transcript or '')[:80] }}..."</p>
+                    <p class="text-xs text-slate-400">{{ meeting.created_at.strftime('%m/%d %H:%M') if meeting.created_at else '' }}</p>
+                </div>
+                {% else %}
+                <p class="text-slate-400 text-sm italic text-center py-6">No recent meetings.</p>
+                {% endfor %}
+            </div>
+            <a href="/activities" class="block text-center mt-5 text-xs font-bold text-purple-600 hover:text-purple-700 uppercase tracking-widest">View Activity Feed →</a>
+        </div>
     </div>
+
+    <!-- System Status -->
+    <div class="mb-6 bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-widest flex items-center">
+                <span class="w-2 h-2 bg-green-500 rounded-full mr-2.5 animate-pulse"></span>
+                System Status
+            </h3>
+            <span class="text-xs font-bold text-green-600 bg-green-50 border border-green-100 px-3 py-1 rounded-full uppercase tracking-widest">
+                Go-Live Ready
+            </span>
+        </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
             <span class="text-green-500 text-lg">✔</span>
@@ -135,31 +175,44 @@
     </div>
 </div>
 
-<!-- Meeting Intelligence System Form -->
-<div id="meeting-form" class="mt-8 bg-white rounded-lg shadow-md p-6">
-    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-        Meeting Intelligence System
-        <span class="ml-2 text-xs bg-indigo-100 text-indigo-800 py-1 px-2 rounded-full font-semibold uppercase tracking-wide">Beta</span>
-    </h3>
-    <form action="/meetings/process" method="POST">
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Meeting Title</label>
-            <input type="text" name="title" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight">
+    <!-- Meeting Intelligence System -->
+    <div id="meeting-form" class="mt-6 bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-robot text-indigo-500"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    Meeting Intelligence
+                    <span class="text-[10px] bg-indigo-100 text-indigo-700 py-0.5 px-2 rounded-full font-bold uppercase tracking-widest">Beta</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">AI extracts tasks, deadlines, and key points from meeting notes</p>
+            </div>
         </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Meeting Transcript</label>
-            <textarea name="transcript" required rows="5" placeholder="Paste meeting notes/transcript here... E.g., 'We will follow up by tomorrow. John should send the contract next week...'" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight"></textarea>
-            <p class="text-xs text-gray-500 mt-1">AI will extract tasks, deadlines, and key points to automatically generate Activity Tasks.</p>
-        </div>
-        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded transition duration-200">
-            Generate Insights
-        </button>
-    </form>
-</div>
+        <form action="/meetings/process" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Meeting Title</label>
+                <input type="text" name="title" required
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    placeholder="e.g. Q3 Pipeline Review">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Meeting Transcript</label>
+                <textarea name="transcript" required rows="4"
+                    placeholder="Paste meeting notes here... e.g. 'We will follow up by tomorrow. John should send the contract next week...'"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"></textarea>
+                <p class="text-[11px] text-slate-400 mt-1.5">AI will auto-generate Activity Tasks from this transcript.</p>
+            </div>
+            <button type="submit"
+                class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow-lg shadow-indigo-500/20 transition-all">
+                <i class="fas fa-magic"></i> Generate Insights
+            </button>
+        </form>
+    </div>
 
-<!-- Output Section -->
-{% if processed_meeting %}
-<div class="mt-8 bg-indigo-50 border-l-4 border-indigo-500 rounded p-6 shadow-md mb-8">
+    <!-- Output Section -->
+    {% if processed_meeting %}
+    <div class="mt-6 bg-indigo-50 border-l-4 border-indigo-500 rounded-xl p-6 border border-indigo-100 mb-6">
     <h3 class="text-2xl font-bold text-indigo-900 mb-2">Insights Extracted: {{ processed_meeting.title }}</h3>
     <p class="text-sm text-indigo-700 mb-6 font-medium bg-white inline-block px-3 py-1 rounded shadow-sm">Tasks have been automatically saved to the Activity Module.</p>
     
@@ -202,9 +255,11 @@
                 {% endfor %}
             </ul>
         </div>
+        </div>
     </div>
-</div>
-{% endif %}
+    {% endif %}
+
+</div><!-- /page wrapper -->
 
 <!-- CRM Assistant Chatbot Floating UI -->
 <style>
@@ -240,7 +295,7 @@
   #chat-history::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
 </style>
 
-<div class="fixed bottom-6 right-6 z-50">
+<div class="fixed bottom-24 right-6 z-50">
 
   <!-- Toggle button -->
   <button id="chat-toggle"

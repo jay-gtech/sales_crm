@@ -1,4 +1,14 @@
 {% extends "base.html" %}
+
+{% block header_title %}Activity Tracker{% endblock %}
+
+{% block header_actions %}
+<button onclick="document.getElementById('createModal').classList.remove('hidden')"
+    class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-md shadow-blue-500/20 transition-all">
+    <i class="fas fa-plus"></i> Log Activity
+</button>
+{% endblock %}
+
 {% block content %}
 
 {# ── icon/color helpers ───────────────────────────────────────────────── #}
@@ -16,18 +26,6 @@
 } %}
 
 <div class="p-8 bg-slate-50 min-h-screen">
-
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-800">Activity Tracker</h1>
-            <p class="text-sm text-slate-500 mt-1">All CRM interactions in one place</p>
-        </div>
-        <button onclick="document.getElementById('createModal').classList.remove('hidden')"
-            class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all">
-            <i class="fas fa-plus"></i> Log Activity
-        </button>
-    </div>
 
     <!-- Filter Bar -->
     <div class="flex items-center gap-3 mb-6 flex-wrap">

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.services.ai_assistant_service import process_assistant_query
+from app.services.ai_router import route_query
 
 router = APIRouter(prefix="/api/ai-assistant", tags=["ai-assistant"])
 
@@ -28,7 +28,7 @@ def query_assistant(
     Returns: { message, items, links, type }
     Never raises on data errors — returns a friendly fallback instead.
     """
-    return process_assistant_query(body.message, db, user)
+    return route_query(body.message, db, user)
 
 
 @router.get("/ping")

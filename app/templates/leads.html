@@ -1,4 +1,14 @@
 {% extends "base.html" %}
+
+{% block header_title %}Leads{% endblock %}
+
+{% block header_actions %}
+<a href="/leads/create"
+   class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-md shadow-blue-500/20 transition-all">
+    <i class="fas fa-plus"></i> New Lead
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="flex h-full bg-slate-50/50">
     <!-- Sidebar Filters -->
@@ -164,11 +174,13 @@
                                 <a href="/leads/{{ lead.id }}" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="View">
                                     <i class="fas fa-eye text-xs"></i>
                                 </a>
+                                {% if can_delete %}
                                 <form action="/leads/{{ lead.id }}/delete" method="POST" onsubmit="return confirm('Delete this lead?')">
                                     <button type="submit" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete">
                                         <i class="fas fa-trash text-xs"></i>
                                     </button>
                                 </form>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

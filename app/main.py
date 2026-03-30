@@ -8,6 +8,7 @@ from fastapi.responses import RedirectResponse
 from app.core.config import settings
 import app.db.base  # noqa: F401 — registers ALL models with SQLAlchemy before any route imports them
 from app.api.routes import auth, leads, contacts, deals, activities, ai, public, reminders, communication, ai_assistant
+from app.api.routes import settings as settings_routes
 from app.api.endpoints import meeting, chatbot
 from app.api.deps import get_current_user
 
@@ -27,6 +28,108 @@ if settings.DEMO_MODE:
             f" -> {response.status_code} ({duration_ms}ms)"
         )
         return response
+
+@app.on_event("startup")
+def migrate_leads_phone_constraint():
+    """
+    Remove the erroneous UNIQUE constraint on leads.phone.
+    SQLite cannot ALTER TABLE DROP CONSTRAINT, so we inspect sqlite_master for
+    any unique index covering phone and drop it, then recreate as a plain index.
+    Safe to run repeatedly — idempotent.
+    """
+    from app.db.session import SessionLocal
+    from sqlalchemy import text
+    db = SessionLocal()
+    try:
+        # Find all indexes on the leads table
+        rows = db.execute(text(
+            "SELECT name, sql FROM sqlite_master "
+            "WHERE type='index' AND tbl_name='leads'"
+        )).fetchall()
+
+        for name, sql in rows:
+            if sql and "phone" in sql.lower() and "unique" in sql.upper():
+                db.execute(text(f"DROP INDEX IF EXISTS \"{name}\""))
+                db.commit()
+                print(f"[migrate] Dropped unique index '{name}' from leads.phone")
+
+        # Ensure a plain (non-unique) index still exists for query performance
+        db.execute(text(
+            "CREATE INDEX IF NOT EXISTS ix_leads_phone_plain ON leads (phone)"
+        ))
+        db.commit()
+    except Exception as exc:
+        print(f"[migrate] leads.phone constraint migration failed: {exc}")
+        db.rollback()
+    finally:
+        db.close()
+
+
+@app.on_event("startup")
+def migrate_email_log_table():
+    """Create email_logs table if it doesn't exist (idempotent)."""
+    from app.db.session import SessionLocal
+    from sqlalchemy import text
+    db = SessionLocal()
+    try:
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS email_logs (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                to_email     VARCHAR(320) NOT NULL,
+                subject      VARCHAR(998) NOT NULL,
+                body         TEXT,
+                status       VARCHAR(10)  NOT NULL DEFAULT 'sent',
+                related_type VARCHAR(20),
+                related_id   INTEGER,
+                sent_by_id   INTEGER,
+                created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
+        db.commit()
+    except Exception as exc:
+        print(f"[migrate] email_logs table migration failed: {exc}")
+        db.rollback()
+    finally:
+        db.close()
+
+
+@app.on_event("startup")
+def migrate_user_table():
+    """
+    Safely add new columns to the users table if they don't exist yet.
+    SQLite supports ALTER TABLE ... ADD COLUMN but not DROP/MODIFY, so
+    we attempt each addition and swallow the 'duplicate column' error.
+    Also ensures the very first user (lowest id) has role='admin'.
+    """
+    from app.db.session import SessionLocal
+    from sqlalchemy import text
+    db = SessionLocal()
+    try:
+        new_columns = [
+            "ALTER TABLE users ADD COLUMN full_name VARCHAR",
+            "ALTER TABLE users ADD COLUMN role VARCHAR NOT NULL DEFAULT 'sales_rep'",
+            "ALTER TABLE users ADD COLUMN manager_id INTEGER REFERENCES users(id)",
+        ]
+        for sql in new_columns:
+            try:
+                db.execute(text(sql))
+                db.commit()
+            except Exception:
+                db.rollback()   # column already exists — safe to ignore
+
+        # Promote the first registered user to admin automatically
+        db.execute(text(
+            "UPDATE users SET role = 'admin' "
+            "WHERE id = (SELECT MIN(id) FROM users) "
+            "AND (role IS NULL OR role = 'sales_rep')"
+        ))
+        db.commit()
+    except Exception as exc:
+        print(f"[migrate] user table migration failed: {exc}")
+        db.rollback()
+    finally:
+        db.close()
+
 
 @app.on_event("startup")
 def print_startup_banner():
@@ -139,6 +242,7 @@ app.include_router(public.router)
 app.include_router(reminders.router)
 app.include_router(communication.router)
 app.include_router(ai_assistant.router)
+app.include_router(settings_routes.router)
 
 from sqlalchemy.orm import Session
 from app.db.session import get_db
@@ -147,6 +251,11 @@ from app.services.dashboard_service import get_dashboard_data, get_report_data
 @app.exception_handler(401)
 async def custom_401_handler(request: Request, __):
     return RedirectResponse("/login")
+
+@app.exception_handler(403)
+async def custom_403_handler(request: Request, __):
+    """Admin-only pages redirect non-admins to home instead of showing a raw 403."""
+    return RedirectResponse("/")
 
 @app.get("/dashboard")
 async def dashboard_view(request: Request, db: Session = Depends(get_db), user = Depends(get_current_user)):

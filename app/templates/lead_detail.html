@@ -1,23 +1,24 @@
 {% extends "base.html" %}
 
+{% block header_title %}{{ lead.first_name }} {{ lead.last_name }}{% endblock %}
+
+{% block header_actions %}
+<a href="/leads" class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-50 transition-all">← Leads</a>
+{% if lead.status != 'Converted' %}
+<button onclick="openConvertModal({{ lead.id }}, '{{ lead.first_name }} {{ lead.last_name }}')"
+    class="px-4 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 shadow-md shadow-emerald-500/30 transition-all">
+    Convert to Deal
+</button>
+{% endif %}
+<button id="open-email-modal-btn"
+    class="px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 shadow-md shadow-indigo-500/30 transition-all flex items-center gap-1.5">
+    <i class="fas fa-envelope"></i> Send Email
+</button>
+<button class="px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 shadow-md shadow-blue-500/30 transition-all">Edit Profile</button>
+{% endblock %}
+
 {% block content %}
 <div class="p-8 bg-slate-50/50 min-h-screen">
-    <!-- Breadcrumb & Actions -->
-    <div class="flex items-center justify-between mb-8">
-        <div class="flex items-center space-x-3 text-sm">
-            <a href="/leads" class="text-blue-600 hover:underline font-medium">Leads</a>
-            <span class="text-slate-400">/</span>
-            <span class="text-slate-800 font-bold uppercase tracking-wider text-xs">{{ lead.first_name }} {{ lead.last_name }}</span>
-        </div>
-        <div class="flex items-center space-x-3">
-            <button onclick="window.history.back()" class="px-4 py-2 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-50 transition-all">Back</button>
-            {% if lead.status != 'Converted' %}
-            <button onclick="openConvertModal({{ lead.id }}, '{{ lead.first_name }} {{ lead.last_name }}')" class="px-6 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition-all">Convert to Deal</button>
-            {% endif %}
-            <button class="px-6 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all">Edit Profile</button>
-        </div>
-    </div>
-
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Info Card -->
         <div class="lg:col-span-2 space-y-8">
@@ -67,6 +68,44 @@
                         </p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Email History -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest">
+                        <i class="fas fa-envelope mr-2 text-indigo-400"></i>Email History
+                    </h3>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ email_logs | length }} sent</span>
+                </div>
+                {% if email_logs %}
+                <div class="space-y-3">
+                    {% for log in email_logs %}
+                    <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0
+                            {% if log.status == 'sent' %}bg-indigo-100 text-indigo-600{% else %}bg-red-100 text-red-500{% endif %}">
+                            <i class="fas {% if log.status == 'sent' %}fa-check{% else %}fa-times{% endif %} text-[10px]"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-bold text-slate-800 truncate">{{ log.subject }}</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">To: {{ log.to_email }}</p>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase
+                                {% if log.status == 'sent' %}bg-indigo-50 text-indigo-700{% else %}bg-red-50 text-red-700{% endif %}">
+                                {{ log.status }}
+                            </span>
+                            <p class="text-[10px] text-slate-400 mt-0.5">{{ log.created_at.strftime('%d %b, %H:%M') if log.created_at else '' }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center py-8 text-center">
+                    <span class="text-3xl mb-2">📭</span>
+                    <p class="text-xs text-slate-400 italic">No emails sent to this lead yet.</p>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Activity Timeline -->
@@ -123,7 +162,7 @@
                         <i class="fas fa-brain text-blue-400 mr-4 group-hover:scale-110 transition-transform"></i>
                         <span class="text-xs font-bold">Refresh AI Insights</span>
                     </button>
-                    <button onclick="generateEmail({{ lead.id }})" class="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl flex items-center px-4 transition-all group">
+                    <button onclick="draftAndOpenEmail({{ lead.id }})" class="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl flex items-center px-4 transition-all group">
                         <i class="fas fa-magic text-purple-400 mr-4 group-hover:scale-110 transition-transform"></i>
                         <span class="text-xs font-bold">Draft Intel Email</span>
                     </button>
@@ -140,6 +179,87 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Send Email Modal ───────────────────────────────────────────────────── -->
+<div id="email-modal"
+     style="display:none; position:fixed; inset:0; z-index:9990;
+            align-items:center; justify-content:center; padding:1rem;
+            background:rgba(0,0,0,0.45);">
+    <div style="position:relative; background:#fff; border-radius:1rem;
+                border:1px solid #e2e8f0; box-shadow:0 20px 60px rgba(0,0,0,0.15);
+                width:100%; max-width:32rem;">
+
+        <!-- Header -->
+        <div style="display:flex; align-items:center; justify-content:space-between;
+                    padding:1rem 1.5rem; border-bottom:1px solid #f1f5f9;">
+            <h3 style="font-size:0.75rem; font-weight:700; color:#1e293b;
+                        text-transform:uppercase; letter-spacing:0.1em;">
+                <i class="fas fa-envelope mr-2 text-indigo-500"></i>Send Email
+            </h3>
+            <button type="button" id="email-modal-close"
+                    style="color:#94a3b8; background:none; border:none; cursor:pointer; font-size:1rem;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Status banner (hidden by default) -->
+        <div id="email-send-status" style="display:none; margin:0.75rem 1.5rem 0;
+             padding:0.5rem 0.75rem; border-radius:0.5rem; font-size:0.75rem; font-weight:600;"></div>
+
+        <!-- Form body -->
+        <div style="padding:1.25rem 1.5rem; display:flex; flex-direction:column; gap:1rem;">
+
+            <div>
+                <label style="display:block; font-size:0.65rem; font-weight:700;
+                              color:#94a3b8; text-transform:uppercase;
+                              letter-spacing:0.08em; margin-bottom:0.375rem;">To</label>
+                <input id="email-to" type="email" readonly
+                       value="{{ lead.email }}"
+                       style="width:100%; background:#f8fafc; border:1px solid #e2e8f0;
+                              border-radius:0.75rem; padding:0.5rem 0.875rem;
+                              font-size:0.875rem; color:#64748b; box-sizing:border-box;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:0.65rem; font-weight:700;
+                              color:#94a3b8; text-transform:uppercase;
+                              letter-spacing:0.08em; margin-bottom:0.375rem;">Subject</label>
+                <input id="email-subject" type="text" placeholder="Enter subject…"
+                       style="width:100%; background:#f8fafc; border:1px solid #e2e8f0;
+                              border-radius:0.75rem; padding:0.5rem 0.875rem;
+                              font-size:0.875rem; color:#1e293b; outline:none; box-sizing:border-box;">
+            </div>
+
+            <div>
+                <label style="display:block; font-size:0.65rem; font-weight:700;
+                              color:#94a3b8; text-transform:uppercase;
+                              letter-spacing:0.08em; margin-bottom:0.375rem;">Message</label>
+                <textarea id="email-body" rows="7" placeholder="Type your message…"
+                          style="width:100%; background:#f8fafc; border:1px solid #e2e8f0;
+                                 border-radius:0.75rem; padding:0.625rem 0.875rem;
+                                 font-size:0.875rem; color:#1e293b; outline:none;
+                                 resize:vertical; box-sizing:border-box;"></textarea>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding:1rem 1.5rem; border-top:1px solid #f1f5f9;
+                    display:flex; justify-content:flex-end; gap:0.75rem;">
+            <button type="button" id="email-modal-cancel"
+                    style="padding:0.5rem 1rem; font-size:0.75rem; font-weight:700;
+                           color:#475569; background:#fff; border:1px solid #e2e8f0;
+                           border-radius:0.75rem; cursor:pointer;">
+                Cancel
+            </button>
+            <button type="button" id="email-send-btn"
+                    style="padding:0.5rem 1.25rem; font-size:0.75rem; font-weight:700;
+                           color:#fff; background:#4f46e5; border:none;
+                           border-radius:0.75rem; cursor:pointer; display:flex; align-items:center; gap:0.4rem;">
+                <i class="fas fa-paper-plane"></i> Send Email
+            </button>
         </div>
     </div>
 </div>
@@ -184,26 +304,140 @@
 </div>
 
 <script>
-function openConvertModal(leadId, name) {
-    document.getElementById('convertModal').classList.remove('hidden');
-}
-async function getLeadScore(leadId) {
-    const res = await fetch(`/ai/score/${leadId}`);
-    if (res.ok) {
-        const data = await res.json();
-        alert(`AI Lead Score: ${data.score}/100\nBased on: ${data.analysis || 'Engagement and historical data'}`);
-    } else {
-        alert("Failed to get score");
+(function () {
+    'use strict';
+
+    // ── Email modal elements ───────────────────────────────────────────────
+    var emailModal  = document.getElementById('email-modal');
+    var emailTo     = document.getElementById('email-to');
+    var emailSubj   = document.getElementById('email-subject');
+    var emailBody   = document.getElementById('email-body');
+    var statusBanner= document.getElementById('email-send-status');
+    var sendBtn     = document.getElementById('email-send-btn');
+
+    function openEmailModal() {
+        statusBanner.style.display = 'none';
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Email';
+        emailModal.style.display = 'flex';
+        emailSubj.focus();
     }
-}
-async function generateEmail(leadId) {
-    const res = await fetch(`/ai/email/${leadId}`);
-    if (res.ok) {
-        const data = await res.json();
-        alert(`AI Personalized Email Draft:\n\n${data.draft}`);
-    } else {
-        alert("Failed to generate email");
+
+    function closeEmailModal() {
+        emailModal.style.display = 'none';
+        emailSubj.value = '';
+        emailBody.value = '';
+        statusBanner.style.display = 'none';
     }
-}
+
+    document.getElementById('open-email-modal-btn').addEventListener('click', openEmailModal);
+    document.getElementById('email-modal-close').addEventListener('click', closeEmailModal);
+    document.getElementById('email-modal-cancel').addEventListener('click', closeEmailModal);
+    emailModal.addEventListener('click', function (e) { if (e.target === emailModal) closeEmailModal(); });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && emailModal.style.display !== 'none') closeEmailModal();
+    });
+
+    // ── Send email via API ─────────────────────────────────────────────────
+    sendBtn.addEventListener('click', async function () {
+        var to      = emailTo.value.trim();
+        var subject = emailSubj.value.trim();
+        var body    = emailBody.value.trim();
+
+        if (!subject || !body) {
+            showStatus('Subject and message are required.', false);
+            return;
+        }
+
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+
+        try {
+            var res = await fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: to,
+                    subject: subject,
+                    body: body,
+                    related_type: 'lead',
+                    related_id: {{ lead.id }}
+                })
+            });
+            var data = await res.json();
+            if (data.ok) {
+                showStatus('✓ ' + data.detail, true);
+                sendBtn.innerHTML = '<i class="fas fa-check"></i> Sent';
+                setTimeout(function () { closeEmailModal(); location.reload(); }, 1500);
+            } else {
+                showStatus(data.detail, false);
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Email';
+            }
+        } catch (err) {
+            showStatus('Network error — please try again.', false);
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Email';
+        }
+    });
+
+    function showStatus(msg, ok) {
+        statusBanner.textContent = msg;
+        statusBanner.style.display = 'block';
+        statusBanner.style.background = ok ? '#f0fdf4' : '#fef2f2';
+        statusBanner.style.color      = ok ? '#166534' : '#991b1b';
+        statusBanner.style.border     = '1px solid ' + (ok ? '#bbf7d0' : '#fecaca');
+    }
+
+    // ── Convert modal ─────────────────────────────────────────────────────
+    window.openConvertModal = function (leadId, name) {
+        document.getElementById('convertModal').classList.remove('hidden');
+    };
+
+    // ── AI lead score ─────────────────────────────────────────────────────
+    window.getLeadScore = async function (leadId) {
+        var res = await fetch('/ai/score/' + leadId);
+        if (res.ok) {
+            var data = await res.json();
+            alert('AI Lead Score: ' + data.score + '/100\nBased on: ' + (data.analysis || 'Engagement and historical data'));
+        } else {
+            alert('Failed to get score');
+        }
+    };
+
+    // ── AI draft → pre-fill email modal ───────────────────────────────────
+    window.draftAndOpenEmail = async function (leadId) {
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Drafting…';
+        emailModal.style.display = 'flex';
+        statusBanner.style.display = 'none';
+
+        try {
+            var res = await fetch('/ai/email/' + leadId);
+            if (res.ok) {
+                var data = await res.json();
+                var draft = data.draft || '';
+                // Attempt to split "Subject: ...\n\nBody..." format from AI
+                var subjectMatch = draft.match(/^Subject:\s*(.+?)(?:\n|$)/im);
+                if (subjectMatch) {
+                    emailSubj.value = subjectMatch[1].trim();
+                    emailBody.value = draft.replace(/^Subject:\s*.+?(\n|$)/im, '').trim();
+                } else {
+                    emailSubj.value = 'Follow-up from CRM';
+                    emailBody.value = draft;
+                }
+            } else {
+                emailSubj.value = 'Follow-up from CRM';
+            }
+        } catch (e) {
+            emailSubj.value = 'Follow-up from CRM';
+        }
+
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Email';
+        emailSubj.focus();
+    };
+
+}());
 </script>
 {% endblock %}
