@@ -50,7 +50,7 @@ def _parse_time(value: Any) -> datetime:
 
 # ── action handlers ───────────────────────────────────────────────────────────
 
-async def _handle_create_lead(params: Dict, db: Session, _user) -> Dict:
+async def _handle_create_lead(params: Dict, db: Session, user) -> Dict:
     try:
         from app.schemas.lead import LeadCreate
         from app.services.lead import create_lead as svc_create_lead
@@ -63,6 +63,15 @@ async def _handle_create_lead(params: Dict, db: Session, _user) -> Dict:
         if not email:
             slug = f"{first_name.lower()}.{last_name.lower()}".replace(" ", "")
             email = f"{slug}@placeholder.crm"
+
+        # Check for existing lead by email to avoid IntegrityError (Keep my improvement)
+        from app.models.lead import Lead
+        existing_lead = db.query(Lead).filter(Lead.email == email).first()
+        if existing_lead:
+            return _ok(
+                f"Lead with email **{email}** already exists ({existing_lead.first_name} {existing_lead.last_name}).",
+                link=f"/leads/{existing_lead.id}"
+            )
 
         lead_data = LeadCreate(
             first_name=first_name,
@@ -85,6 +94,7 @@ async def _handle_create_lead(params: Dict, db: Session, _user) -> Dict:
 async def _handle_add_reminder(params: Dict, db: Session, user) -> Dict:
     try:
         from app.services.reminder import create_reminder
+        from app.services.email_service import send_email_async
 
         title = (params.get("title") or "Follow up").strip()[:100]
 
@@ -92,7 +102,7 @@ async def _handle_add_reminder(params: Dict, db: Session, user) -> Dict:
         try:
             reminder_time = _parse_time(params.get("reminder_time"))
         except ValueError:
-            reminder_time = datetime.utcnow().replace(
+            reminder_time = datetime.now().replace(
                 hour=9, minute=0, second=0, microsecond=0
             ) + timedelta(days=1)
 
@@ -108,21 +118,19 @@ async def _handle_add_reminder(params: Dict, db: Session, user) -> Dict:
         )
         time_str = reminder_time.strftime("%b %d, %Y at %H:%M")
 
-        # ── Optional email notification — safe, never blocks action success ──
-        try:
-            if getattr(user, "email", None):
-                from app.services.email_service import send_email_async
-                subject = f"Reminder Set: {title}"
-                body = (
-                    f"Hello {getattr(user, 'display_name', user.email)},\n\n"
-                    f"A reminder has been set:\n\n"
-                    f"Title: {title}\n"
-                    f"Time:  {time_str}\n"
-                    f"Notes: {description or 'N/A'}"
-                )
-                await send_email_async(user.email, subject, body)
-        except Exception as email_exc:
-            logger.warning("[action] reminder email notification failed: %s", email_exc)
+        # ── Reminder Notification ──────────────────────────────────────────
+        if getattr(user, "email", None):
+            subject = f"Reminder Set: {title}"
+            body = (
+                f"Hello {getattr(user, 'display_name', user.email)},\n\n"
+                f"A reminder has been set for you:\n\n"
+                f"Title: {title}\n"
+                f"Time:  {time_str}\n"
+                f"Description: {description or 'N/A'}"
+            )
+            # Trigger async email
+            import anyio
+            await send_email_async(user.email, subject, body)
 
         return _ok(f"Reminder **\"{title}\"** set for {time_str}.")
     except Exception as exc:
@@ -175,7 +183,7 @@ _HANDLERS = {
 async def execute_action(action_data: Dict, db: Session, user) -> Dict:
     """
     Execute a validated action dict from llm_service.extract_action.
-    Returns {"ok": bool, "message": str, "link": str | None}.
+    Returns {"ok": bool, "message": str, "link": Optional[str]}.
     Async so ai_router can safely await it.
     Never raises.
     """

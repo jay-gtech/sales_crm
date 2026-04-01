@@ -69,30 +69,32 @@ def send_email_sync(
 
         if email_settings.SMTP_PORT == 465:
             with smtplib.SMTP_SSL(
-                email_settings.SMTP_SERVER, email_settings.SMTP_PORT, timeout=10
+                email_settings.SMTP_SERVER, email_settings.SMTP_PORT, timeout=15
             ) as smtp:
                 smtp.login(email_settings.SMTP_EMAIL, password)
                 smtp.sendmail(email_settings.SMTP_EMAIL, to, msg.as_string())
         else:
             with smtplib.SMTP(
-                email_settings.SMTP_SERVER, email_settings.SMTP_PORT, timeout=10
+                email_settings.SMTP_SERVER, email_settings.SMTP_PORT, timeout=15
             ) as smtp:
                 smtp.ehlo()
                 smtp.starttls()
+                smtp.ehlo()  # Re-identify after STARTTLS (common Gmail requirement)
                 smtp.login(email_settings.SMTP_EMAIL, password)
                 smtp.sendmail(email_settings.SMTP_EMAIL, to, msg.as_string())
 
         logger.info("[EMAIL] Sent → %s | subject: %s", to, subject)
         return True
 
-    except smtplib.SMTPAuthenticationError:
-        logger.error("[EMAIL] Auth failed — check SMTP_EMAIL / SMTP_PASSWORD")
-    except smtplib.SMTPConnectError:
-        logger.error("[EMAIL] Connection failed — check SMTP_SERVER / SMTP_PORT")
+    except smtplib.SMTPAuthenticationError as auth_exc:
+        logger.error("[EMAIL] Authentication failed for %s: %s", to, auth_exc)
+        return False
+    except smtplib.SMTPConnectError as conn_exc:
+        logger.error("[EMAIL] Connection failed to %s: %s", to, conn_exc)
+        return False
     except Exception as exc:
-        logger.error("[EMAIL] Send failed to %s: %s", to, exc)
-
-    return False
+        logger.error("[EMAIL] Unexpected error sending to %s: %s", to, exc)
+        return False
 
 
 async def send_email_async(

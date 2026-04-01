@@ -83,12 +83,36 @@ def add_turn(user_id: Any, user_message: str, assistant_message: str) -> None:
 
 
 def clear_history(user_id: Any) -> None:
-    """Remove all conversation history for this user. Never raises."""
+    """Remove all conversation history and state for this user. Never raises."""
     try:
         _store.pop(user_id, None)
-        logger.debug("[memory] cleared history for user %s", user_id)
+        logger.debug("[memory] cleared history and state for user %s", user_id)
     except Exception:
         pass
+
+
+def get_state(user_id: Any) -> Dict[str, Any]:
+    """Return the current session state (e.g. pending actions) for this user."""
+    try:
+        entry = _store.get(user_id)
+        if not entry or _is_expired(entry):
+            return {}
+        return entry.get("state", {})
+    except Exception:
+        return {}
+
+
+def set_state(user_id: Any, state: Dict[str, Any]) -> None:
+    """Update the session state for this user."""
+    try:
+        if user_id not in _store:
+            _store[user_id] = {"messages": [], "last_active": time.time(), "state": {}}
+        
+        entry = _store[user_id]
+        entry["state"] = state
+        entry["last_active"] = time.time()
+    except Exception as exc:
+        logger.warning("[memory] set_state error: %s", exc)
 
 
 def prune_expired() -> None:
