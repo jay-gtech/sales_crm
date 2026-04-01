@@ -1,17 +1,40 @@
+"""
+Modular email service.
+
+Provides both sync and async wrappers around SMTP sending.
+All functions are safe to call even when SMTP is not configured —
+they log a warning and return False without raising.
+
+Usage:
+    from app.services.email_service import send_email_sync, send_email_async
+
+    # synchronous
+    ok = send_email_sync(to="user@example.com", subject="Hello", message="Body")
+
+    # async (non-blocking, uses anyio thread offload)
+    ok = await send_email_async(to="user@example.com", subject="Hello", message="Body")
+"""
 import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Optional
+
 import anyio
 
 from app.core.email_config import email_settings
 
 logger = logging.getLogger(__name__)
 
+
 def email_configured() -> bool:
-    """Return True if all required SMTP settings are present."""
-    return bool(email_settings.SMTP_SERVER and email_settings.SMTP_EMAIL and email_settings.SMTP_PASSWORD)
+    """Return True only when all three required SMTP fields are set."""
+    return bool(
+        email_settings.SMTP_SERVER
+        and email_settings.SMTP_EMAIL
+        and email_settings.SMTP_PASSWORD
+    )
+
 
 def send_email_sync(
     to: str,
@@ -20,10 +43,15 @@ def send_email_sync(
     html_message: Optional[str] = None,
 ) -> bool:
     """
-    Synchronous email sending logic.
+    Send an email via SMTP (synchronous).
+    Supports port 465 (SSL) and port 587 (STARTTLS).
+    Returns True on success, False on any failure or missing config.
+    Never raises.
     """
     if not email_configured():
-        logger.warning("[EMAIL] Not configured — SMTP_SERVER / SMTP_EMAIL / SMTP_PASSWORD missing")
+        logger.warning(
+            "[EMAIL] Not configured — set SMTP_SERVER / SMTP_EMAIL / SMTP_PASSWORD"
+        )
         return False
 
     try:
@@ -36,24 +64,38 @@ def send_email_sync(
         if html_message:
             msg.attach(MIMEText(html_message, "html"))
 
+        # Strip accidental spaces from app-password style credentials
         password = email_settings.SMTP_PASSWORD.replace(" ", "").strip()
+
         if email_settings.SMTP_PORT == 465:
-            with smtplib.SMTP_SSL(email_settings.SMTP_SERVER, email_settings.SMTP_PORT, timeout=10) as smtp:
+            with smtplib.SMTP_SSL(
+                email_settings.SMTP_SERVER, email_settings.SMTP_PORT, timeout=15
+            ) as smtp:
                 smtp.login(email_settings.SMTP_EMAIL, password)
                 smtp.sendmail(email_settings.SMTP_EMAIL, to, msg.as_string())
         else:
-            with smtplib.SMTP(email_settings.SMTP_SERVER, email_settings.SMTP_PORT, timeout=10) as smtp:
+            with smtplib.SMTP(
+                email_settings.SMTP_SERVER, email_settings.SMTP_PORT, timeout=15
+            ) as smtp:
                 smtp.ehlo()
                 smtp.starttls()
+                smtp.ehlo()  # Re-identify after STARTTLS (common Gmail requirement)
                 smtp.login(email_settings.SMTP_EMAIL, password)
                 smtp.sendmail(email_settings.SMTP_EMAIL, to, msg.as_string())
 
         logger.info("[EMAIL] Sent → %s | subject: %s", to, subject)
         return True
 
-    except Exception as exc:
-        logger.error("[EMAIL] Send failed to %s: %s", to, exc)
+    except smtplib.SMTPAuthenticationError as auth_exc:
+        logger.error("[EMAIL] Authentication failed for %s: %s", to, auth_exc)
         return False
+    except smtplib.SMTPConnectError as conn_exc:
+        logger.error("[EMAIL] Connection failed to %s: %s", to, conn_exc)
+        return False
+    except Exception as exc:
+        logger.error("[EMAIL] Unexpected error sending to %s: %s", to, exc)
+        return False
+
 
 async def send_email_async(
     to: str,
@@ -62,8 +104,9 @@ async def send_email_async(
     html_message: Optional[str] = None,
 ) -> bool:
     """
-    Asynchronous version of send_email using anyio.to_thread to avoid blocking.
+    Async wrapper — offloads the blocking SMTP call to a thread via anyio.
+    Safe to await from any async FastAPI route or background task.
     """
     return await anyio.to_thread.run_sync(
-        send_email_sync, to, subject, message, html_message
+        lambda: send_email_sync(to, subject, message, html_message)
     )

@@ -3,10 +3,10 @@
 {% block header_title %}Deals Pipeline{% endblock %}
 
 {% block header_actions %}
-<a href="/deals/create"
+<button onclick="document.getElementById('createDealModal').classList.remove('hidden')"
    class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-md shadow-blue-500/20 transition-all">
     <i class="fas fa-plus"></i> New Deal
-</a>
+</button>
 {% endblock %}
 
 {% block content %}

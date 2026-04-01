@@ -3,7 +3,9 @@
 {% block header_title %}{{ lead.first_name }} {{ lead.last_name }}{% endblock %}
 
 {% block header_actions %}
-<a href="/leads" class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-50 transition-all">← Leads</a>
+<a href="/leads"
+    class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-50 transition-all">←
+    Leads</a>
 {% if lead.status != 'Converted' %}
 <button onclick="openConvertModal({{ lead.id }}, '{{ lead.first_name }} {{ lead.last_name }}')"
     class="px-4 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 shadow-md shadow-emerald-500/30 transition-all">
@@ -14,7 +16,9 @@
     class="px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 shadow-md shadow-indigo-500/30 transition-all flex items-center gap-1.5">
     <i class="fas fa-envelope"></i> Send Email
 </button>
-<button class="px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 shadow-md shadow-blue-500/30 transition-all">Edit Profile</button>
+<button
+    class="px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 shadow-md shadow-blue-500/30 transition-all">Edit
+    Profile</button>
 {% endblock %}
 
 {% block content %}
@@ -25,39 +29,50 @@
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="px-8 py-8 border-b border-slate-100 flex items-start justify-between">
                     <div class="flex items-center">
-                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg mr-6">
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg mr-6">
                             {{ (lead.first_name or 'L')[0] }}{{ (lead.last_name or 'E')[0] }}
                         </div>
                         <div>
-                            <h2 class="text-2xl font-bold text-slate-800">{{ lead.salutation or '' }} {{ lead.first_name }} {{ lead.last_name }}</h2>
-                            <p class="text-slate-500 font-medium mt-1">{{ lead.title or 'Strategic Lead' }} at <span class="text-blue-600 font-bold">{{ lead.company or 'Unspecified Corp' }}</span></p>
+                            <h2 class="text-2xl font-bold text-slate-800">{{ lead.salutation or '' }} {{ lead.first_name
+                                }} {{ lead.last_name }}</h2>
+                            <p class="text-slate-500 font-medium mt-1">{{ lead.title or 'Strategic Lead' }} at <span
+                                    class="text-blue-600 font-bold">{{ lead.company or 'Unspecified Corp' }}</span></p>
                             <div class="mt-4 flex items-center space-x-4">
-                                <span class="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full border border-slate-200 uppercase tracking-widest">{{ lead.source or 'Direct' }}</span>
-                                <span class="px-3 py-1 {% if lead.status == 'Qualified' %}bg-emerald-50 text-emerald-700 border-emerald-100{% elif lead.status == 'New' %}bg-blue-50 text-blue-700 border-blue-100{% else %}bg-slate-50 text-slate-600 border-slate-200{% endif %} text-[10px] font-bold rounded-full border uppercase tracking-widest">{{ lead.status }}</span>
+                                <span
+                                    class="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full border border-slate-200 uppercase tracking-widest">{{
+                                    lead.source or 'Direct' }}</span>
+                                <span
+                                    class="px-3 py-1 {% if lead.status == 'Qualified' %}bg-emerald-50 text-emerald-700 border-emerald-100{% elif lead.status == 'New' %}bg-blue-50 text-blue-700 border-blue-100{% else %}bg-slate-50 text-slate-600 border-slate-200{% endif %} text-[10px] font-bold rounded-full border uppercase tracking-widest">{{
+                                    lead.status }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="px-8 py-8 grid grid-cols-2 gap-y-8">
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Email Address</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Email Address
+                        </p>
                         <p class="text-sm font-semibold text-slate-800 flex items-center">
                             <i class="fas fa-envelope mr-2 text-slate-300"></i> {{ lead.email }}
                         </p>
                     </div>
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Phone Number</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Phone Number
+                        </p>
                         <p class="text-sm font-semibold text-slate-800 flex items-center">
                             <i class="fas fa-phone mr-2 text-slate-300"></i> {{ lead.phone }}
                         </p>
                     </div>
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Lead Scoring (AI)</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Lead Scoring
+                            (AI)</p>
                         <div class="flex items-center mt-1">
                             <span class="text-xl font-bold text-slate-900 mr-3">{{ lead.lead_score or 0 }}</span>
                             <div class="flex-1 max-w-[120px] h-2 bg-slate-100 rounded-full overflow-hidden">
-                                <div class="h-full {% if (lead.lead_score or 0) > 70 %}bg-emerald-500{% elif (lead.lead_score or 0) > 40 %}bg-amber-500{% else %}bg-slate-400{% endif %}" style="width: {{ lead.lead_score or 0 }}%"></div>
+                                <div class="h-full {% if (lead.lead_score or 0) > 70 %}bg-emerald-500{% elif (lead.lead_score or 0) > 40 %}bg-amber-500{% else %}bg-slate-400{% endif %}"
+                                    style="width: {{ lead.lead_score or 0 }}%"></div>
                             </div>
                         </div>
                     </div>
@@ -70,32 +85,53 @@
                 </div>
             </div>
 
+            <!-- AI Summary Card (shown if exists) -->
+            <div id="ai-summary-card"
+                class="hidden bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl border border-indigo-100 shadow-sm p-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-bold text-indigo-900 uppercase tracking-widest flex items-center">
+                        <i class="fas fa-sparkles mr-2 text-amber-500"></i> AI Executive Brief
+                    </h3>
+                    <span
+                        class="text-[9px] font-bold bg-white/50 text-indigo-600 px-2 py-0.5 rounded-full border border-indigo-100">GENERATED
+                        BY ZIA</span>
+                </div>
+                <div id="ai-summary-content" class="text-sm text-indigo-800 leading-relaxed italic">
+                    <!-- Loaded via JS -->
+                </div>
+            </div>
+
             <!-- Email History -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
                     <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest">
                         <i class="fas fa-envelope mr-2 text-indigo-400"></i>Email History
                     </h3>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ email_logs | length }} sent</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ email_logs | length
+                        }} sent</span>
                 </div>
                 {% if email_logs %}
                 <div class="space-y-3">
                     {% for log in email_logs %}
                     <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0
+                        <div
+                            class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0
                             {% if log.status == 'sent' %}bg-indigo-100 text-indigo-600{% else %}bg-red-100 text-red-500{% endif %}">
-                            <i class="fas {% if log.status == 'sent' %}fa-check{% else %}fa-times{% endif %} text-[10px]"></i>
+                            <i
+                                class="fas {% if log.status == 'sent' %}fa-check{% else %}fa-times{% endif %} text-[10px]"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-bold text-slate-800 truncate">{{ log.subject }}</p>
                             <p class="text-[11px] text-slate-400 mt-0.5">To: {{ log.to_email }}</p>
                         </div>
                         <div class="text-right flex-shrink-0">
-                            <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase
+                            <span
+                                class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase
                                 {% if log.status == 'sent' %}bg-indigo-50 text-indigo-700{% else %}bg-red-50 text-red-700{% endif %}">
                                 {{ log.status }}
                             </span>
-                            <p class="text-[10px] text-slate-400 mt-0.5">{{ log.created_at.strftime('%d %b, %H:%M') if log.created_at else '' }}</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">{{ log.created_at.strftime('%d %b, %H:%M') if
+                                log.created_at else '' }}</p>
                         </div>
                     </div>
                     {% endfor %}
@@ -112,7 +148,9 @@
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
                     <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest">Interaction Timeline</h3>
-                    <a href="/activities" class="text-[10px] font-bold text-blue-600 hover:underline uppercase tracking-widest">View All</a>
+                    <a href="/activities"
+                        class="text-[10px] font-bold text-blue-600 hover:underline uppercase tracking-widest">View
+                        All</a>
                 </div>
                 {% set type_icon = {'Call': '📞', 'Email': '📧', 'Meeting': '📅', 'Task': '✅'} %}
                 {% if lead_activities %}
@@ -132,7 +170,8 @@
                                 {% endif %}
                             </div>
                             <div class="shrink-0 text-right">
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full
+                                <span
+                                    class="text-[10px] font-bold px-2 py-0.5 rounded-full
                                     {% if a.status == 'completed' %}bg-emerald-50 text-emerald-700{% else %}bg-amber-50 text-amber-700{% endif %}">
                                     {% if a.status == 'completed' %}✓ Done{% else %}Pending{% endif %}
                                 </span>
@@ -156,13 +195,21 @@
         <!-- Sidebar Actions -->
         <div class="space-y-8">
             <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 text-white shadow-xl">
-                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 font-semibold">AI Assistant</h3>
+                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 font-semibold">AI Assistant
+                </h3>
                 <div class="space-y-4">
-                    <button onclick="getLeadScore({{ lead.id }})" class="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl flex items-center px-4 transition-all group">
+                    <button onclick="getLeadSummary({{ lead.id }})"
+                        class="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl flex items-center px-4 transition-all group">
+                        <i class="fas fa-sparkles text-amber-400 mr-4 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-xs font-bold">Generate AI Summary</span>
+                    </button>
+                    <button onclick="getLeadScore({{ lead.id }})"
+                        class="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl flex items-center px-4 transition-all group">
                         <i class="fas fa-brain text-blue-400 mr-4 group-hover:scale-110 transition-transform"></i>
                         <span class="text-xs font-bold">Refresh AI Insights</span>
                     </button>
-                    <button onclick="draftAndOpenEmail({{ lead.id }})" class="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl flex items-center px-4 transition-all group">
+                    <button onclick="draftAndOpenEmail({{ lead.id }})"
+                        class="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl flex items-center px-4 transition-all group">
                         <i class="fas fa-magic text-purple-400 mr-4 group-hover:scale-110 transition-transform"></i>
                         <span class="text-xs font-bold">Draft Intel Email</span>
                     </button>
@@ -171,7 +218,8 @@
 
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">Lead Health</h3>
-                <div class="flex items-center justify-center p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                <div
+                    class="flex items-center justify-center p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                     <div class="text-center">
                         <i class="fas fa-bolt text-amber-500 text-3xl mb-3"></i>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Profile Match</p>
@@ -184,8 +232,7 @@
 </div>
 
 <!-- ── Send Email Modal ───────────────────────────────────────────────────── -->
-<div id="email-modal"
-     style="display:none; position:fixed; inset:0; z-index:9990;
+<div id="email-modal" style="display:none; position:fixed; inset:0; z-index:9990;
             align-items:center; justify-content:center; padding:1rem;
             background:rgba(0,0,0,0.45);">
     <div style="position:relative; background:#fff; border-radius:1rem;
@@ -200,7 +247,7 @@
                 <i class="fas fa-envelope mr-2 text-indigo-500"></i>Send Email
             </h3>
             <button type="button" id="email-modal-close"
-                    style="color:#94a3b8; background:none; border:none; cursor:pointer; font-size:1rem;">
+                style="color:#94a3b8; background:none; border:none; cursor:pointer; font-size:1rem;">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -216,9 +263,7 @@
                 <label style="display:block; font-size:0.65rem; font-weight:700;
                               color:#94a3b8; text-transform:uppercase;
                               letter-spacing:0.08em; margin-bottom:0.375rem;">To</label>
-                <input id="email-to" type="email" readonly
-                       value="{{ lead.email }}"
-                       style="width:100%; background:#f8fafc; border:1px solid #e2e8f0;
+                <input id="email-to" type="email" readonly value="{{ lead.email }}" style="width:100%; background:#f8fafc; border:1px solid #e2e8f0;
                               border-radius:0.75rem; padding:0.5rem 0.875rem;
                               font-size:0.875rem; color:#64748b; box-sizing:border-box;">
             </div>
@@ -227,8 +272,7 @@
                 <label style="display:block; font-size:0.65rem; font-weight:700;
                               color:#94a3b8; text-transform:uppercase;
                               letter-spacing:0.08em; margin-bottom:0.375rem;">Subject</label>
-                <input id="email-subject" type="text" placeholder="Enter subject…"
-                       style="width:100%; background:#f8fafc; border:1px solid #e2e8f0;
+                <input id="email-subject" type="text" placeholder="Enter subject…" style="width:100%; background:#f8fafc; border:1px solid #e2e8f0;
                               border-radius:0.75rem; padding:0.5rem 0.875rem;
                               font-size:0.875rem; color:#1e293b; outline:none; box-sizing:border-box;">
             </div>
@@ -237,8 +281,7 @@
                 <label style="display:block; font-size:0.65rem; font-weight:700;
                               color:#94a3b8; text-transform:uppercase;
                               letter-spacing:0.08em; margin-bottom:0.375rem;">Message</label>
-                <textarea id="email-body" rows="7" placeholder="Type your message…"
-                          style="width:100%; background:#f8fafc; border:1px solid #e2e8f0;
+                <textarea id="email-body" rows="7" placeholder="Type your message…" style="width:100%; background:#f8fafc; border:1px solid #e2e8f0;
                                  border-radius:0.75rem; padding:0.625rem 0.875rem;
                                  font-size:0.875rem; color:#1e293b; outline:none;
                                  resize:vertical; box-sizing:border-box;"></textarea>
@@ -248,14 +291,12 @@
         <!-- Footer -->
         <div style="padding:1rem 1.5rem; border-top:1px solid #f1f5f9;
                     display:flex; justify-content:flex-end; gap:0.75rem;">
-            <button type="button" id="email-modal-cancel"
-                    style="padding:0.5rem 1rem; font-size:0.75rem; font-weight:700;
+            <button type="button" id="email-modal-cancel" style="padding:0.5rem 1rem; font-size:0.75rem; font-weight:700;
                            color:#475569; background:#fff; border:1px solid #e2e8f0;
                            border-radius:0.75rem; cursor:pointer;">
                 Cancel
             </button>
-            <button type="button" id="email-send-btn"
-                    style="padding:0.5rem 1.25rem; font-size:0.75rem; font-weight:700;
+            <button type="button" id="email-send-btn" style="padding:0.5rem 1.25rem; font-size:0.75rem; font-weight:700;
                            color:#fff; background:#4f46e5; border:none;
                            border-radius:0.75rem; cursor:pointer; display:flex; align-items:center; gap:0.4rem;">
                 <i class="fas fa-paper-plane"></i> Send Email
@@ -265,36 +306,48 @@
 </div>
 
 <!-- Convert to Deal Modal -->
-<div id="convertModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 transition-all">
+<div id="convertModal"
+    class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 transition-all">
     <div class="relative top-24 mx-auto p-1 w-full max-w-md">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
             <div class="px-6 py-5 border-b border-slate-100 bg-emerald-50/50">
                 <h3 class="text-xl font-bold text-slate-800">Finalize Opportunity</h3>
                 <p class="text-xs text-emerald-600 font-bold uppercase tracking-widest mt-1">Lead to Deal Conversion</p>
             </div>
-            
+
             <form id="convertForm" action="/deals/convert/{{ lead.id }}" method="POST" class="p-6">
-                <p class="text-xs text-slate-500 mb-6 font-medium">Elevating <span id="convertLeadName" class="text-slate-900 font-bold">{{ lead.first_name }} {{ lead.last_name }}</span> to an active deal in your pipeline.</p>
-                
+                <p class="text-xs text-slate-500 mb-6 font-medium">Elevating <span id="convertLeadName"
+                        class="text-slate-900 font-bold">{{ lead.first_name }} {{ lead.last_name }}</span> to an active
+                    deal in your pipeline.</p>
+
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Opportunity Name</label>
-                        <input type="text" name="deal_name" id="deal_name" value="{{ lead.first_name }} {{ lead.last_name }} - Deal" required class="w-full bg-slate-50 border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none py-2.5 px-3 transition-all">
+                        <label
+                            class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Opportunity
+                            Name</label>
+                        <input type="text" name="deal_name" id="deal_name"
+                            value="{{ lead.first_name }} {{ lead.last_name }} - Deal" required
+                            class="w-full bg-slate-50 border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none py-2.5 px-3 transition-all">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Expected Revenue ($)</label>
+                        <label
+                            class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Expected
+                            Revenue ($)</label>
                         <div class="relative">
                             <span class="absolute left-3 top-2.5 text-slate-400 text-sm">$</span>
-                            <input type="number" name="deal_amount" step="0.01" required value="0.00" class="w-full bg-slate-50 border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none py-2.5 pl-7 pr-3 transition-all">
+                            <input type="number" name="deal_amount" step="0.01" required value="0.00"
+                                class="w-full bg-slate-50 border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none py-2.5 pl-7 pr-3 transition-all">
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-2 gap-3 mt-8">
-                    <button type="button" onclick="document.getElementById('convertModal').classList.add('hidden')" class="py-2.5 bg-white hover:bg-slate-50 text-slate-600 font-bold rounded-xl border border-slate-200 transition-all text-sm">
+                    <button type="button" onclick="document.getElementById('convertModal').classList.add('hidden')"
+                        class="py-2.5 bg-white hover:bg-slate-50 text-slate-600 font-bold rounded-xl border border-slate-200 transition-all text-sm">
                         Keep as Lead
                     </button>
-                    <button type="submit" class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/30 transition-all transform hover:-translate-y-0.5 text-sm">
+                    <button type="submit"
+                        class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/30 transition-all transform hover:-translate-y-0.5 text-sm">
                         Create Deal
                     </button>
                 </div>
@@ -304,94 +357,116 @@
 </div>
 
 <script>
-(function () {
-    'use strict';
+    (function () {
+        'use strict';
 
-    // ── Email modal elements ───────────────────────────────────────────────
-    var emailModal  = document.getElementById('email-modal');
-    var emailTo     = document.getElementById('email-to');
-    var emailSubj   = document.getElementById('email-subject');
-    var emailBody   = document.getElementById('email-body');
-    var statusBanner= document.getElementById('email-send-status');
-    var sendBtn     = document.getElementById('email-send-btn');
+        // ── Email modal elements ───────────────────────────────────────────────
+        var emailModal = document.getElementById('email-modal');
+        var emailTo = document.getElementById('email-to');
+        var emailSubj = document.getElementById('email-subject');
+        var emailBody = document.getElementById('email-body');
+        var statusBanner = document.getElementById('email-send-status');
+        var sendBtn = document.getElementById('email-send-btn');
 
-    function openEmailModal() {
-        statusBanner.style.display = 'none';
-        sendBtn.disabled = false;
-        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Email';
-        emailModal.style.display = 'flex';
-        emailSubj.focus();
-    }
-
-    function closeEmailModal() {
-        emailModal.style.display = 'none';
-        emailSubj.value = '';
-        emailBody.value = '';
-        statusBanner.style.display = 'none';
-    }
-
-    document.getElementById('open-email-modal-btn').addEventListener('click', openEmailModal);
-    document.getElementById('email-modal-close').addEventListener('click', closeEmailModal);
-    document.getElementById('email-modal-cancel').addEventListener('click', closeEmailModal);
-    emailModal.addEventListener('click', function (e) { if (e.target === emailModal) closeEmailModal(); });
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && emailModal.style.display !== 'none') closeEmailModal();
-    });
-
-    // ── Send email via API ─────────────────────────────────────────────────
-    sendBtn.addEventListener('click', async function () {
-        var to      = emailTo.value.trim();
-        var subject = emailSubj.value.trim();
-        var body    = emailBody.value.trim();
-
-        if (!subject || !body) {
-            showStatus('Subject and message are required.', false);
-            return;
-        }
-
-        sendBtn.disabled = true;
-        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
-
-        try {
-            var res = await fetch('/api/send-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    to: to,
-                    subject: subject,
-                    body: body,
-                    related_type: 'lead',
-                    related_id: {{ lead.id }}
-                })
-            });
-            var data = await res.json();
-            if (data.ok) {
-                showStatus('✓ ' + data.detail, true);
-                sendBtn.innerHTML = '<i class="fas fa-check"></i> Sent';
-                setTimeout(function () { closeEmailModal(); location.reload(); }, 1500);
-            } else {
-                showStatus(data.detail, false);
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Email';
-            }
-        } catch (err) {
-            showStatus('Network error — please try again.', false);
+        function openEmailModal() {
+            statusBanner.style.display = 'none';
             sendBtn.disabled = false;
             sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Email';
+            emailModal.style.display = 'flex';
+            emailSubj.focus();
         }
+
+        function closeEmailModal() {
+            emailModal.style.display = 'none';
+            emailSubj.value = '';
+            emailBody.value = '';
+            statusBanner.style.display = 'none';
+        }
+
+        document.getElementById('open-email-modal-btn').addEventListener('click', openEmailModal);
+        document.getElementById('email-modal-close').addEventListener('click', closeEmailModal);
+        document.getElementById('email-modal-cancel').addEventListener('click', closeEmailModal);
+        emailModal.addEventListener('click', function (e) { if (e.target === emailModal) closeEmailModal(); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && emailModal.style.display !== 'none') closeEmailModal();
+        });
+
+        // ── Send email via API ─────────────────────────────────────────────────
+        sendBtn.addEventListener('click', async function () {
+            var to = emailTo.value.trim();
+            var subject = emailSubj.value.trim();
+            var body = emailBody.value.trim();
+
+            if (!subject || !body) {
+                showStatus('Subject and message are required.', false);
+                return;
+            }
+
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+
+            try {
+                var res = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        to: to,
+                        subject: subject,
+                        body: body,
+                        related_type: 'lead',
+                        related_id: {{ lead.id }}
+                })
+    });
+    var data = await res.json();
+    if (data.ok) {
+        showStatus('✓ ' + data.detail, true);
+        sendBtn.innerHTML = '<i class="fas fa-check"></i> Sent';
+        setTimeout(function () { closeEmailModal(); location.reload(); }, 1500);
+    } else {
+        showStatus(data.detail, false);
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Email';
+    }
+        } catch (err) {
+        showStatus('Network error — please try again.', false);
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Email';
+    }
     });
 
     function showStatus(msg, ok) {
         statusBanner.textContent = msg;
         statusBanner.style.display = 'block';
         statusBanner.style.background = ok ? '#f0fdf4' : '#fef2f2';
-        statusBanner.style.color      = ok ? '#166534' : '#991b1b';
-        statusBanner.style.border     = '1px solid ' + (ok ? '#bbf7d0' : '#fecaca');
+        statusBanner.style.color = ok ? '#166534' : '#991b1b';
+        statusBanner.style.border = '1px solid ' + (ok ? '#bbf7d0' : '#fecaca');
     }
 
     // ── Convert modal ─────────────────────────────────────────────────────
     window.openConvertModal = function (leadId, name) {
         document.getElementById('convertModal').classList.remove('hidden');
+    };
+
+    // ── AI lead summary ───────────────────────────────────────────────────
+    window.getLeadSummary = async function (leadId) {
+        const card = document.getElementById('ai-summary-card');
+        const content = document.getElementById('ai-summary-content');
+
+        // Show loading state
+        card.classList.remove('hidden');
+        content.innerHTML = '<div class="flex items-center gap-2"><i class="fas fa-circle-notch fa-spin"></i><span>Analyzing activity history and drafting brief...</span></div>';
+
+        try {
+            const res = await fetch('/leads/' + leadId + '/summary');
+            if (res.ok) {
+                const data = await res.json();
+                content.innerHTML = data.summary || "No summary available.";
+            } else {
+                content.innerHTML = '<span class="text-red-500">Failed to generate summary. Please ensure Groq is configured.</span>';
+            }
+        } catch (e) {
+            content.innerHTML = '<span class="text-red-500">Network error.</span>';
+        }
     };
 
     // ── AI lead score ─────────────────────────────────────────────────────

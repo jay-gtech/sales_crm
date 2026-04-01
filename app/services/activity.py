@@ -39,7 +39,9 @@ def create_activity(db: Session, activity: ActivityCreate) -> Activity:
     return db_activity
 
 
-def mark_complete(db: Session, activity_id: int) -> Activity | None:
+from typing import List, Optional, Union
+
+def mark_complete(db: Session, activity_id: int) -> Optional[Activity]:
     activity = db.query(Activity).filter(Activity.id == activity_id).first()
     if activity:
         activity.status = "completed"
@@ -54,8 +56,8 @@ def log_activity(
     title: str,
     activity_type: str = "Task",
     description: str = "",
-    lead_id: int | None = None,
-    deal_id: int | None = None,
+    lead_id: Optional[int] = None,
+    deal_id: Optional[int] = None,
     status: str = "completed",
 ) -> None:
     """

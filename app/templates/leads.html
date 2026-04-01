@@ -3,13 +3,26 @@
 {% block header_title %}Leads{% endblock %}
 
 {% block header_actions %}
-<a href="/leads/create"
+<button onclick="document.getElementById('createLeadModal').classList.remove('hidden')"
    class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-md shadow-blue-500/20 transition-all">
     <i class="fas fa-plus"></i> New Lead
-</a>
+</button>
 {% endblock %}
 
 {% block content %}
+{% if error == 'email_exists' %}
+<div id="lead-error-banner"
+     class="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3
+            bg-red-50 border border-red-200 text-red-700 text-xs font-semibold
+            px-5 py-3 rounded-xl shadow-lg shadow-red-100/60 min-w-[320px]">
+    <i class="fas fa-exclamation-circle text-red-500 text-sm"></i>
+    <span>A lead with this email address already exists.</span>
+    <button onclick="document.getElementById('lead-error-banner').remove()"
+            class="ml-auto text-red-400 hover:text-red-600 transition-colors">
+        <i class="fas fa-times text-xs"></i>
+    </button>
+</div>
+{% endif %}
 <div class="flex h-full bg-slate-50/50">
     <!-- Sidebar Filters -->
     <div class="w-72 bg-white border-r border-slate-200 flex flex-col shadow-sm z-10">

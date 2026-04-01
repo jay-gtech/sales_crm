@@ -21,9 +21,9 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_WHATSAPP_NUMBER: str = ""    # e.g. "whatsapp:+14155238886"
 
-    # ── AI Assistant (Anthropic) — leave empty to use keyword-only mode ────
-    ANTHROPIC_API_KEY: str = ""
-    LLM_MODEL: str = "claude-haiku-4-5-20251001"
+    # ── AI Assistant (Groq) — primary enhancement ─────────────────────────
+    GROQ_API_KEY: str = ""
+    LLM_MODEL: str = "llama-3.1-8b-instant"
 
     class Config:
         case_sensitive = True

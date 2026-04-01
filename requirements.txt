@@ -14,7 +14,7 @@ Jinja2
 # ── Auth & Security ───────────────────────────────────────────────────────
 python-jose[cryptography]
 passlib[bcrypt]
-bcrypt
+bcrypt==3.2.0
 cryptography
 
 # ── Config & Validation ───────────────────────────────────────────────────
@@ -30,6 +30,6 @@ anyio
 # twilio>=8.0.0
 
 # ── AI / LLM (optional) ───────────────────────────────────────────────────
-# Install anthropic to enable real LLM responses in the Zia assistant.
+# Install groq to enable real LLM responses in the Zia assistant.
 # Without it, Zia falls back to keyword-only responses — fully functional.
-# anthropic>=0.25.0
+groq>=0.5.0

@@ -244,30 +244,6 @@
         {% endif %}
     </div>
 
-    <!-- ── API Reference (demo helper) ───────────────────────────────── -->
-    <div class="mt-6 bg-slate-800 rounded-xl p-6 text-white">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
-            <i class="fas fa-code mr-2"></i>Lead Capture API — Demo Endpoints
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
-            <div>
-                <p class="text-slate-400 mb-2 font-sans font-bold text-[10px] uppercase">Public (no auth)</p>
-                <code class="block bg-slate-900 rounded px-3 py-2 text-green-400">POST /api/public/lead</code>
-            </div>
-            <div>
-                <p class="text-slate-400 mb-2 font-sans font-bold text-[10px] uppercase">Mock Sources</p>
-                <div class="space-y-1">
-                    <code class="block bg-slate-900 rounded px-3 py-1.5 text-blue-400">POST /api/mock/facebook-lead</code>
-                    <code class="block bg-slate-900 rounded px-3 py-1.5 text-yellow-400">POST /api/mock/google-lead</code>
-                    <code class="block bg-slate-900 rounded px-3 py-1.5 text-emerald-400">POST /api/mock/email-lead</code>
-                    <code class="block bg-slate-900 rounded px-3 py-1.5 text-purple-400">POST /api/mock/whatsapp-lead</code>
-                </div>
-            </div>
-        </div>
-        <p class="text-slate-500 text-[10px] mt-4">
-            Payload: <code class="text-slate-300">{"name": "Jane Doe", "email": "jane@example.com", "phone": "555-0100", "company": "Acme"}</code>
-        </p>
-    </div>
 
 </div>
 {% endblock %}

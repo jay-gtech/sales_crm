@@ -1,14 +1,38 @@
 """
-Communication service — Dispatcher for Email and WhatsApp.
-Refactored to use modular email_service.
+Communication service — unified dispatcher for Email and WhatsApp.
+
+Email logic is delegated to app.services.email_service (modular, supports
+both port 465 SSL and port 587 STARTTLS, has sync + async variants).
+
+All functions are safe to call even when providers are not configured —
+they log a warning and return False without raising.
 """
 import logging
 from typing import Optional
 
-from app.services.email_service import send_email_sync, send_email_async, email_configured
-from app.core.config import settings # for WhatsApp settings
+from app.services.email_service import (
+    send_email_sync,
+    send_email_async,   # noqa: F401 — re-exported for callers that need async
+    email_configured,   # noqa: F401 — re-exported for route-level config checks
+)
+from app.core.config import settings   # WhatsApp credentials live in main config
 
 logger = logging.getLogger(__name__)
+
+
+# ── re-export email helpers so existing callers don't need to change ──────────
+
+def send_email(
+    to: str,
+    subject: str,
+    message: str,
+    html_message: Optional[str] = None,
+) -> bool:
+    """Synchronous email send — backward-compatible wrapper for email_service."""
+    return send_email_sync(to, subject, message, html_message)
+
+
+# ── WhatsApp (Twilio) — kept synchronous to avoid event-loop issues ───────────
 
 def whatsapp_configured() -> bool:
     """Return True if all required Twilio settings are present."""
@@ -18,25 +42,18 @@ def whatsapp_configured() -> bool:
         and settings.TWILIO_WHATSAPP_NUMBER
     )
 
-def send_email(
-    to: str,
-    subject: str,
-    message: str,
-    html_message: Optional[str] = None,
-) -> bool:
-    """
-    Sync legacy wrapper for modular email_service.
-    """
-    return send_email_sync(to, subject, message, html_message)
 
-async def send_whatsapp(to_number: str, message: str) -> bool:
+def send_whatsapp(to_number: str, message: str) -> bool:
     """
-    Send a WhatsApp message via the Twilio API.
+    Send a WhatsApp message via the Twilio API (synchronous).
+    Returns True on success, False on failure or missing config.
+    Never raises.
     """
     if not whatsapp_configured():
         return False
     try:
-        from twilio.rest import Client
+        from twilio.rest import Client   # optional dependency
+
         def _wa(number: str) -> str:
             return number if number.startswith("whatsapp:") else f"whatsapp:{number}"
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
@@ -47,6 +64,12 @@ async def send_whatsapp(to_number: str, message: str) -> bool:
         )
         logger.info("[COMM] WhatsApp sent → %s", to_number)
         return True
+
+    except ImportError:
+        logger.error(
+            "[COMM] twilio package not installed. "
+            "Run: pip install twilio"
+        )
     except Exception as exc:
         logger.error("[COMM] WhatsApp failed: %s", exc)
         return False
@@ -59,14 +82,21 @@ def send_message(
     html_message: Optional[str] = None,
 ) -> bool:
     """
-    Unified dispatcher (Sync).
+    Unified synchronous dispatcher.
+    channel must be 'email' or 'whatsapp'.
+    Returns True on success, False on failure or unconfigured provider.
+    Never raises.
     """
-    ch = channel.lower().strip()
-    if ch == "email":
-        return send_email_sync(to, subject, message, html_message)
-    if ch == "whatsapp":
-        # Note: WhatsApp is currently sync here because Twilio Client is sync.
-        import asyncio
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(send_whatsapp(to, message))
-    return False
+    try:
+        ch = channel.lower().strip()
+        if ch == "email":
+            return send_email_sync(to, subject, message, html_message)
+        if ch == "whatsapp":
+            return send_whatsapp(to_number=to, message=message)
+
+        logger.warning("[COMM] Unknown channel '%s' — use 'email' or 'whatsapp'", channel)
+        return False
+
+    except Exception as exc:
+        logger.error("[COMM] send_message unexpected error: %s", exc)
+        return False

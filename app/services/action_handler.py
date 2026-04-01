@@ -3,13 +3,14 @@ Action Handler — validates and executes structured CRM actions from the AI ass
 
 Supported actions:
   create_lead   — creates a Lead record
-  add_reminder  — creates a Reminder record
+  add_reminder  — creates a Reminder record (+ optional email notification)
   create_deal   — creates a Deal record (requires a contact; skipped gracefully if none exist)
 
 Every function returns:
   {"ok": True,  "message": str, "link": str | None}   on success
   {"ok": False, "message": str, "link": None}          on failure
 
+All handlers are async so ai_router can await execute_action safely.
 Never raises — all exceptions are caught and returned as ok=False.
 """
 import logging
@@ -19,6 +20,7 @@ from typing import Any, Dict
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
+
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -62,6 +64,15 @@ async def _handle_create_lead(params: Dict, db: Session, user) -> Dict:
             slug = f"{first_name.lower()}.{last_name.lower()}".replace(" ", "")
             email = f"{slug}@placeholder.crm"
 
+        # Check for existing lead by email to avoid IntegrityError (Keep my improvement)
+        from app.models.lead import Lead
+        existing_lead = db.query(Lead).filter(Lead.email == email).first()
+        if existing_lead:
+            return _ok(
+                f"Lead with email **{email}** already exists ({existing_lead.first_name} {existing_lead.last_name}).",
+                link=f"/leads/{existing_lead.id}"
+            )
+
         lead_data = LeadCreate(
             first_name=first_name,
             last_name=last_name,
@@ -91,29 +102,33 @@ async def _handle_add_reminder(params: Dict, db: Session, user) -> Dict:
         try:
             reminder_time = _parse_time(params.get("reminder_time"))
         except ValueError:
-            reminder_time = datetime.utcnow().replace(
+            reminder_time = datetime.now().replace(
                 hour=9, minute=0, second=0, microsecond=0
             ) + timedelta(days=1)
 
         description = params.get("description") or None
 
-        # related_type and related_id are required positional args — use "general" / 0
         create_reminder(
             db,
             title,
-            "general",      # related_type
-            0,              # related_id (no specific record)
+            "general",  # related_type
+            0,          # related_id (no specific record)
             reminder_time,
             description,
         )
         time_str = reminder_time.strftime("%b %d, %Y at %H:%M")
-        
+
         # ── Reminder Notification ──────────────────────────────────────────
-        if user.email:
+        if getattr(user, "email", None):
             subject = f"Reminder Set: {title}"
-            body = f"Hello {user.display_name},\n\nA reminder has been set for you:\n\nTitle: {title}\nTime: {time_str}\nDescription: {description or 'N/A'}"
-            # Trigger async email — we don't strictly need to await it for the UI response 
-            # but since we're in an async handler, we can.
+            body = (
+                f"Hello {getattr(user, 'display_name', user.email)},\n\n"
+                f"A reminder has been set for you:\n\n"
+                f"Title: {title}\n"
+                f"Time:  {time_str}\n"
+                f"Description: {description or 'N/A'}"
+            )
+            # Trigger async email
             import anyio
             await send_email_async(user.email, subject, body)
 
@@ -168,14 +183,15 @@ _HANDLERS = {
 async def execute_action(action_data: Dict, db: Session, user) -> Dict:
     """
     Execute a validated action dict from llm_service.extract_action.
-    Returns {"ok": bool, "message": str, "link": str | None}.
+    Returns {"ok": bool, "message": str, "link": Optional[str]}.
+    Async so ai_router can safely await it.
     Never raises.
     """
     if not action_data:
         return _fail("No action could be determined from your request.")
 
-    action = action_data.get("action")
-    params = action_data.get("params") or {}
+    action  = action_data.get("action")
+    params  = action_data.get("params") or {}
 
     handler = _HANDLERS.get(action)
     if handler is None:
